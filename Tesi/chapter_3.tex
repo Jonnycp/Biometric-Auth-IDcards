@@ -1,0 +1,74 @@
+\chapter{\scshape Titolo del Capitolo}
+
+Inserire qui il testo del capitolo
+
+\section{Titolo del sotto capitolo}
+Inserire qui il testo del sotto capitolo.
+
+Quello di seguito è un esempio di Figura.  \\
+
+\noindent \textbf{Per inseire un'immagine su Overlaef con LaTeX} e con la sua didascalia basta caricare le immagini nella cartella "images" e poi seguire il codice riportato. \\
+
+\noindent \textbf{Per inserire un’immagine su Microsoft Word} scegliere Inserisci > Immagini. \\
+
+Utilizzare immagini di risoluzioni e dimensioni adeguate. \\
+
+\noindent \textbf{Per inserire la didascalia su Microsoft Word}: 
+\begin{enumerate}
+    \item fare clic sulla figura; 
+    \item fare clic su Riferimenti > Inserisci didascalia; 
+    \item selezionare l’etichetta Figura, la posizione Sotto l’elemento selezionato.
+\end{enumerate} 
+
+La didascalia utilizza lo stile “Didascalia”. È importante che tutte le figure inserite siano citate almeno una volta nel corpo del testo. \\
+
+\noindent \textbf{Per citare il riferimento della figura (Figura 1) su Microsoft Word nel corpo del testo}: 
+\begin{enumerate}
+    \item posizionare il cursore nel punto del testo in cui si desidera inserire la citazione alla figura; 
+    \item fare clic su Inserisci > Collegamenti > Riferimento incrociato;
+    \item selezionare il tipo: Figura, Inserisci riferimento a: Solo etichetta e numero;
+    \item fare clic su Inserisci. 
+\end{enumerate} 
+
+\noindent \textbf{Per citare il riferimento della figura (Figura \ref{tab:esempio-immagine}) su Overleaf con LaTeX nel corpo del testo}:
+\begin{enumerate}
+    \item iserire l'immagine come spiegato precedentemente;
+    \item aggiungere il campo "\verb|\|label\{\}";
+    \item posizionare il cursore nel punto del testo in cui si desidera inserire la citazione alla figura;
+    \item scrivere "\verb|\|ref\{\}" e all'interno delle parentesi graffe cioò che è stato inserito al'interno del campo "\verb|\|label\{\}" citato in precedenza.
+\end{enumerate}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/logo-politecnico-di-bari-esteso.png}
+    \caption{Esempio di Didascalia di Figura}
+    \label{tab:esempio-immagine}
+\end{figure}
+
+
+\subsection{Titolo del sotto-sotto capitolo}
+Inserire qui il testo del sotto-capitolo.\\
+
+\noindent \textbf{Per inserire un'equazione su Overleaf con LaTeX}:
+\begin{enumerate}
+    \item posizionare il cursore nel punto del testo in cui si desidera inserire la citazione alla figura;
+    \item inserire il tag \verb|\|begin\{equation\};
+    \item iniziare a scrivere la formula seguendo le regole base di LaTeX.
+\end{enumerate}
+
+\noindent \textbf{Per inserire un'equazione su Microsoft Word}: 
+\begin{enumerate}
+    \item selezionare la tabella sottostante contenente l’equazione;
+    \item copiare e Incollare dove necessario;
+    \item cambiare il numero di riferimento dell’equazione;
+    \item inserire il riferimento dell’equazione nel corpo del testo manualmente in parentesi tonde.
+\end{enumerate}
+
+È importante che tutte le equazioni inserite siano citate almeno una volta nel corpo del testo. \\
+
+\textbf{N.B.} La tabella dell'equazione su Microsoft Word sottostante non presenta i bordi (selezionare Struttura tabella > Bordi > Nessun Bordo) ed è formata da due colonne: la prima colonna contiene l’equazione allineata al centro e inserita tramite il procedimento Inserisci > Equazione; la seconda colonna contiene il numero del riferimento in parentesi tonde ed è larga circa 1cm.
+
+\begin{equation}
+    \left(\frac{R_e}{1-D}-\frac{DT_s}{C_e}\right) \le \Delta v_{pp}^{max}
+\end{equation}

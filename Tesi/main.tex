@@ -1,0 +1,160 @@
+\documentclass[12pt,oneside]{settingsTemplate}
+\AtBeginDocument{\RenewCommandCopy\qty\SI}
+%load any additional packages
+
+%\usepackage{mathptmx}  % Usa Times (simile a Times New Roman)
+%\renewcommand{\rmdefault}{ptm}  % Imposta il font principale su Times
+%\renewcommand{\bfdefault}{b}  % Usa la variante grassetto di Times
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[italian]{babel}
+\usepackage{booktabs}
+\usepackage{dirtree}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage{physics}
+\usepackage[binary-units]{siunitx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{amsmath} % Per la modalità matematica avanzata
+\usepackage{amsfonts} % Per \mathbb
+
+
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0}
+}
+
+\usepackage[toc,acronym,nomain,nonumberlist,nopostdot]{glossaries}
+\usepackage{caption}
+\usepackage{subcaption}
+\expandafter\def\csname ver@subfig.sty\endcsname{}
+\AtBeginDocument{\RenewCommandCopy\qty\SI}
+% \ExplSyntaxOn
+% \msg_redirect_name:nnn{siunitx}{physics-pkg}{none}
+% \ExplSyntaxOff
+\usepackage[binary-units=true]{siunitx}
+
+\usepackage{soul}
+\usepackage{pdfpages}
+\usepackage{tabularx}
+\usepackage{subfig}
+\usepackage{graphicx}
+
+\usepackage{array}
+
+%\usepackage{mdframed}
+\usepackage{xcolor}
+
+% to debug sheet sizes
+%\usepackage{layout}
+%\usepackage{showframe}
+% then use \layout{} in your document environment to show measures
+
+% algorithm package configuration
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+%note \\[1ex] can be a line break in the title
+\title{Titolo Dell'Elaborato}
+
+\author{Jonathan \scshape Caputo}
+
+%professor names can be changed from the file "settingsTemplate.cls"
+
+\department{Dipartimento di Ingegneria Elettrica e dell'Informazione}
+\university{Politecnico Di Bari}
+
+
+\renewcommand{\submittedtext}{Tesi di Laurea in}
+\renewcommand{\course}{XX}
+\degree{Triennale/Magistrale in  \\ XX}
+
+\makeglossaries
+\setacronymstyle{long-short}
+
+
+%end the preamble and start the document
+\begin{document}
+\include{acronyms}
+%this baselineskip gives sufficient line spacing for an examiner to easily
+%markup the thesis with comments
+\baselineskip=18pt plus1pt
+
+%set the number of sectioning levels that get number and appear in the contents
+\setcounter{secnumdepth}{3} %Mostra numerazione fino a \subsubsection
+\setcounter{tocdepth}{2}  % Include fino al \subsection nell'indice
+
+\maketitle                  % create a title page from the preamble info
+% \includepdf[pages=-]{LIBERATORIA_TESI.pdf}
+% \includepdf[pages=-]{Dichiarazione-Tesi-Conforme.pdf}
+
+\pagenumbering{gobble} % Nasconde la numerazione iniziale
+
+\include{dedication}        % include a dedication.tex file
+% \include{acknowlegements}   % include an acknowledgements.tex file
+\include{abstract}          % include the abstract
+%\begin{romanpages}          % start roman page numbering
+\renewcommand{\contentsname}{\scshape Indice} %mette il titolo in maiuscoletto
+\tableofcontents
+%\end{romanpages}            % end roman page numbering
+
+\renewcommand{\listtablename}{\scshape Elenco delle Tabelle} % modify the title of the list of tables
+\addcontentsline{toc}{chapter}{\scshape \listtablename} %mostra il titolo in maiuscoletto nell'indice
+\listoftables
+
+\pagenumbering{arabic} % Fa ripartire la numerazione delle pagine
+\setcounter{page}{1} % Imposta il numero di pagina a 1
+
+
+%Inizio Script per spostare il numero in basso a destra
+\makeatletter
+\renewcommand{\ps@plain}{%
+    \renewcommand{\@oddfoot}{\mbox{}\hfill\thepage} % Numero in basso a destra
+    \renewcommand{\@evenfoot}{\mbox{}\hfill\thepage} % Per pagine pari
+}
+\makeatother
+\pagestyle{plain} % Applica il nuovo stile modificato
+%Fine Script per spostare il numero in basso a destra
+
+
+\renewcommand{\listfigurename}{\scshape Elenco delle Figure} % modify the title of the list of figures
+\addcontentsline{toc}{chapter}{\scshape \listfigurename} %mostra il titolo in maiuscoletto nell'indice
+\listoffigures
+
+%\printglossaries
+\printglossary[type=acronym, title={\scshape Acronimi e Abbreviazioni}] %modify the name of the glossary
+
+%now include the files of latex for each of the chapters etc
+\include{introduction}
+\include{chapter_1}
+\include{chapter_2}
+\include{chapter_3}
+\include{conclusion}
+
+
+%next line adds the Bibliography to the contents page
+\renewcommand{\bibname}{\scshape Bibliografia e Sitografia} %modify the title of the bibliography
+\addcontentsline{toc}{chapter}{\scshape \bibname}
+\bibliographystyle{unsrt}
+\bibliography{bibliography}
+
+
+%next line adds Acknowledgments to the contents page
+\include{acknowledgments}
+
+\include{instructions} %comment this section when you write your thesis
+
+\end{document}

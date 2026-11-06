@@ -1,0 +1,63 @@
+\chapter{\scshape Titolo del Capitolo}
+
+Inserire qui il testo del capitolo
+
+\section{Titolo del sotto capitolo}
+Inserire qui il testo del sotto capitolo. \\
+
+\noindent Di seguito è riportato un esempio di Tabella. 
+
+Per inserire la tabella con la sua didascalia su Overleaf con LaTeX guardare il codice del documento.
+
+Per inserire la didascalia alla tabella su Microsoft Word: 
+\begin{enumerate}
+    \item fare clic sulla tabella;
+    \item fare clic su Riferimenti > Inserisci didascalia; 
+    \item selezionare l’etichetta Tabella, la posizione Sopra l’elemento selezionato.
+\end{enumerate} 
+
+La didascalia utilizza lo stile “Didascalia”. Formattare le tabelle come indicato (Times New Roman 11 pt; Spaziatura prima e dopo 1 pt).  \\
+
+Evitare linee verticali a meno che non siano strettamente necessarie e funzionali ad una migliore comprensione dei dati riassunti nella tabella.
+
+È importante che tutte le tabelle inserite siano citate almeno una volta nel corpo del testo.
+
+\begin{table}[H]
+    \centering
+    %\begin{tabular}{c c c c}
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} c c c c c @{}}
+        \hline
+        \textbf{} & \textbf{Colonna 2} & \textbf{Colonna 3} & \textbf{Colonna 4} & \textbf{Colonna 5}\\
+        \hline
+        Riga 1 &  &  &  &\\
+        %\hline
+        Riga 2 &  &  &  &\\
+        %\hline
+        Riga 3 &  &  &  &\\
+        %\hline
+    %\end{tabular}
+    \end{tabular*}
+    \caption{Titolo della Tabella}
+    \label{tab:esempio-tabella}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c c c c c}
+        \hline
+        \textbf{} & \textbf{Colonna 2} & \textbf{Colonna 3} & \textbf{Colonna 4} & \textbf{Colonna 5}\\
+        \hline
+        Riga 1 &  &  &  &\\
+        %\hline
+        Riga 2 &  &  &  &\\
+        %\hline
+        Riga 3 &  &  &  &\\
+        %\hline
+    \end{tabular}
+    \caption{Titolo della Tabella 2}
+    \label{tab:esempio-tabella-2}
+\end{table}
+
+\subsection{Titolo del sotto-sotto capitolo}
+Inserire qui il testo del sotto-capitolo
+
