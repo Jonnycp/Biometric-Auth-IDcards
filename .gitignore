@@ -1,4 +1,5 @@
 /Giuliana-Terlizzo
+
 /Tesi/Dichiarazione-Tesi-Conforme.pdf
 /Tesi/Liberatoria_TESI.pdf
 /Tesi/*.aux
@@ -6,3 +7,9 @@
 /Tesi/*.glsdefs
 /Tesi/*.ist
 /Tesi/*.gz
+
+/backend/.env
+/backend/datasets/id_cards/*
+
+/.vscode
+/.venv
