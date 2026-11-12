@@ -74,4 +74,18 @@ def fixProspective(image: np.ndarray, targetSize = (856, 856)):
     fixedImage = cv2.warpPerspective(original, matrix, targetSize)
     return fixedImage, True
 
+# Pipeline unificata per correggere immagine ID card
+def preprocessIDCard(imagePath):
+    img = cv2.imread(imagePath)
+    if img is None:
+        raise FileNotFoundError(f"Impossibile trovare il file {imagePath}")
 
+    fixes = {"prospective": False, "contrast": False} 
+
+    img, rectified = fixProspective(img)
+    fixes["prospective"] = rectified
+
+    img = enhanceContrast(img)
+    fixes["contrast"] = True
+
+    return img, fixes
