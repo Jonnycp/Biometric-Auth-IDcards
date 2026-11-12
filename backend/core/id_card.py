@@ -89,3 +89,9 @@ def preprocessIDCard(imagePath):
     fixes["contrast"] = True
 
     return img, fixes
+
+# Decodifica immagine da bytes a numpy array BGR
+def decodeImage(image_bytes: bytes):
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    return img
