@@ -48,3 +48,12 @@ def cropFace(image: np.ndarray, bbox: np.ndarray, margin_perc: int = 0):
     if crop.size <= 0:
         return None
     return crop
+
+def pipelineFaceDetection(detector: FaceAnalysis, image: np.ndarray):
+    faces = getFaces(detector, image)
+    mainFace = getMainFace(faces)
+    if mainFace is None:
+        return None, image
+    
+    croppedImgFace = cropFace(image, mainFace.bbox) 
+    return mainFace, croppedImgFace
