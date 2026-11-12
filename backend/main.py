@@ -14,23 +14,22 @@ INSIGHTFACE_MODEL = os.getenv("INSIGHTFACE_MODEL") or "buffalo_l"
 LIVENESS_MODEL_PATH = os.getenv("LIVENESS_MODEL_PATH") or ""
 MONGODB_URI = os.getenv("MONGODB_URI") or ""
 FRONTEND_URL = os.getenv("FRONTEND_URL") or "http://localhost:5173"
+BACKEND_URL = "http://0.0.0.0:3000"
 
 # LIVENESS SERVER
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Starting up...")
-
     if(not INSIGHTFACE_MODEL or not LIVENESS_MODEL_PATH or not MONGODB_URI):
         raise ValueError("INSIGHTFACE_MODEL, LIVENESS_MODEL_PATH e MONGODB_URI devono essere impostati nel .env")
 
-
+    
     print(f"Using InsightFace model: {INSIGHTFACE_MODEL}")
     print(f"Using Liveness model: {LIVENESS_MODEL_PATH}")
 
     app.state.recognizer = initFaceRecognition(INSIGHTFACE_MODEL, (320, 320))
     app.state.livenessSession = loadLivenessModel(LIVENESS_MODEL_PATH)
 
-    print("Startup complete.")
+    print(f"🔫 Live on {BACKEND_URL}")
 
     yield
     
@@ -58,4 +57,4 @@ app.include_router(router, prefix="/api")
 # STARTING
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host=BACKEND_URL.split(":")[1][2:], port=int(BACKEND_URL.split(":")[2]), reload=True)
