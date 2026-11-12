@@ -7,7 +7,7 @@ import numpy as np
 def createUser(user: User):
     users = getUsersCollection()
 
-    result = users.insert_one(user)
+    result = users.insert_one(user.model_dump())
     return result
 
 def searchUser_byEmbedding(query_embedding: np.ndarray, threshold: float = 0.35):
