@@ -69,7 +69,7 @@ def predictLiveness(session: ort.InferenceSession, crop_bgr: np.ndarray):
 
 # Check liveness con soglia
 def checkLiveness(session: ort.InferenceSession, image: np.ndarray, bbox: np.ndarray, threshold: float = 0.5):
-    crop = cropLiveness(image, bbox)
+    crop = scaleBbox(image, bbox)
     if not crop is None:
         p_real, p_print, p_screen = predictLiveness(session, crop)
 
