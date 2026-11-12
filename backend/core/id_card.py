@@ -75,11 +75,7 @@ def fixProspective(image: np.ndarray, targetSize = (856, 856)):
     return fixedImage, True
 
 # Pipeline unificata per correggere immagine ID card
-def preprocessIDCard(imagePath):
-    img = cv2.imread(imagePath)
-    if img is None:
-        raise FileNotFoundError(f"Impossibile trovare il file {imagePath}")
-
+def preprocessIDCard(img: np.ndarray):
     fixes = {"prospective": False, "contrast": False} 
 
     img, rectified = fixProspective(img)
