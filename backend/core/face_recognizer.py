@@ -14,7 +14,7 @@ def cosineSimilarity(embedding1: np.ndarray, embedding2: np.ndarray):
     if embedding1 is None or embedding2 is None:
         return 0.0
     
-    dot_product = np.dot(embedding1, embedding2)
+    dot_product = embedding1 @ embedding2
     norm1 = np.linalg.norm(embedding1)
     norm2 = np.linalg.norm(embedding2)
 
