@@ -28,20 +28,20 @@ def getMainFace(faces: list):
 # Ritaglio bbox faccia
 def cropFace(image: np.ndarray, bbox: np.ndarray, margin_perc: int = 0):
     x1, y1, x2, y2 = bbox
-    h, w = image.shape
+    h, w = image.shape[:2]
 
     if margin_perc > 0:
         margin_x = int((x2 - x1))
         margin_y = int((y2 - y1))
-        x1 = max(0, x1 - margin_x)
-        y1 = max(0, y1 - margin_y)
-        x2 = min(w, x2 + margin_x)
-        y2 = min(h, y2 + margin_y)
+        x1 = int(max(0, x1 - margin_x))
+        y1 = int(max(0, y1 - margin_y))
+        x2 = int(min(w, x2 + margin_x))
+        y2 = int(min(h, y2 + margin_y))
     else:
-        x1 = max(0, x1)
-        y1 = max(0, y1)
-        x2 = min(w, x2)
-        y2 = min(h, y2)
+        x1 = int(max(0, x1))
+        y1 = int(max(0, y1))
+        x2 = int(min(w, x2))
+        y2 = int(min(h, y2))
     
     crop = image[y1:y2, x1:x2]
     
