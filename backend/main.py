@@ -14,7 +14,7 @@ INSIGHTFACE_MODEL = os.getenv("INSIGHTFACE_MODEL") or "buffalo_l"
 LIVENESS_MODEL_PATH = os.getenv("LIVENESS_MODEL_PATH") or ""
 MONGODB_URI = os.getenv("MONGODB_URI") or ""
 FRONTEND_URL = os.getenv("FRONTEND_URL") or "http://localhost:5173"
-BACKEND_URL = "http://0.0.0.0:3000"
+BACKEND_URL = os.getenv("BACKEND_URL") or "http://0.0.0.0:3000"
 
 # LIVENESS SERVER
 @asynccontextmanager
