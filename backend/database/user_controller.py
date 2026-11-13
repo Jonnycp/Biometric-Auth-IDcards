@@ -10,7 +10,7 @@ def createUser(user: User):
     result = users.insert_one(user.model_dump())
     return result
 
-def searchUser_byEmbedding(query_embedding: np.ndarray, threshold: float = 0.35):
+def searchUser_byEmbedding(query_embedding: np.ndarray, threshold: float = 0.35) -> UserResult:
     users = getUsersCollection()
     query_embedding_list = query_embedding.tolist()
 
