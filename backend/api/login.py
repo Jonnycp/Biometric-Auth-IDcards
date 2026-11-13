@@ -14,6 +14,8 @@ from backend.database.user_controller import searchUser_byEmbedding
 load_dotenv()
 LIVENESS_THRESHOLD = float(os.getenv("LIVENESS_THRESHOLD", 0.6))
 SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", 0.45))
+FRAMES_LIVENESS = int(os.getenv("FRAMES_LIVENESS", 45))
+MAX_SPOOF_ATTACKS = int(os.getenv("MAX_SPOOF_ATTACKS", 10))
 
 async def ws_loginUser(websocket: WebSocket):
     await websocket.accept()
@@ -21,6 +23,12 @@ async def ws_loginUser(websocket: WebSocket):
     app = websocket.app
     recognizer = app.state.recognizer
     liveness_session = app.state.liveness_session
+
+    #PARAMETRI LIVENESS
+    liveness_scores = []
+    best_embedding = None
+    best_score = -1.0
+    spoof_attack_detected_count = 0
 
     try:
         while True:
@@ -41,36 +49,88 @@ async def ws_loginUser(websocket: WebSocket):
             face, cropped_face = pipelineFaceDetection(recognizer, image)
             embedding, score = extractEmbeddings(face)
             if embedding is None or face is None:
+                liveness_scores.clear()
+                best_embedding = None
+                best_score = -1.0
+                spoof_attack_detected_count = 0
+                
                 await websocket.send_json({"status": "WAITING_FACE", "message": "Nessun volto rilevato nell'immagine."})
                 continue
 
             # 4. Liveness check
             liveness_result = checkLiveness(liveness_session, image, face.bbox, LIVENESS_THRESHOLD)
+
+            # 4.1 Aggiorna punteggi liveness e embedding migliore
+            liveness_scores.append(liveness_result["score"])
+            if score > best_score:
+                best_score = score
+                best_embedding = embedding
+            progress = int((len(liveness_scores) / FRAMES_LIVENESS) * 100)
+
             if not liveness_result["is_live"]:
-                await websocket.send_json({"status": "SPOOF_ATTACK", 
-                                           "attack_type": liveness_result["attack_type"],
-                                           "liveness_score": liveness_result["score"],
-                                           "liveness_probabilities": liveness_result["probabilities"],
-                                           "liveness_threshold": liveness_result["treshold"]
-                                           })
-                continue
-            # 5. Cerca in db
-            user_result = searchUser_byEmbedding(embedding, SIMILARITY_THRESHOLD)
-            
-            # 6. Risposta
-            payload = {
-                "status": "MATCH" if user_result.isMatch else "NO_MATCH",
-                "attack_type": liveness_result["attack_type"],
-                "similarity": round(user_result.similarity, 3),
-                "liveness_score": round(liveness_result["score"], 3),
-                "liveness_probabilities": liveness_result["probabilities"],
-                "liveness_threshold": liveness_result["treshold"],
-                "similarity_threshold": SIMILARITY_THRESHOLD,
-                "vector_score": round(user_result.vectorScore, 3) if user_result.vectorScore is not None else 0.0,
-                "embedding_score": round(score, 3),
-                "user": user_result.user.model_dump() if user_result.user else None,
-            }
-            await websocket.send_json(payload)
+                spoof_attack_detected_count += 1
+
+            # 4.2 Listen frames for liveness
+            if len(liveness_scores) < FRAMES_LIVENESS:
+                if(spoof_attack_detected_count > MAX_SPOOF_ATTACKS):
+                    await websocket.send_json({"status": "SPOOF_ATTACK", 
+                                               "attack_type": liveness_result["attack_type"],
+                                               "liveness_score": round(liveness_result["score"], 3),
+                                               "liveness_probabilities": liveness_result["probabilities"],
+                                               "liveness_threshold": liveness_result["treshold"],
+                                               "liveness_progress": progress
+                                               })
+                    liveness_scores.clear()
+                    best_embedding = None
+                    best_score = -1.0
+                    spoof_attack_detected_count = 0
+                    continue
+                else:
+                    await websocket.send_json({"status": "WAITING_LIVENESS", 
+                                               "liveness_score": round(liveness_result["score"], 3),
+                                               "liveness_probabilities": liveness_result["probabilities"],
+                                               "liveness_threshold": liveness_result["treshold"],
+                                               "liveness_progress": progress
+                                               })
+                    continue
+            else:
+                avg_liveness_score = sum(liveness_scores) / len(liveness_scores)
+                liveness_scores.clear()
+                spoof_attack_detected_count = 0
+
+                if avg_liveness_score < LIVENESS_THRESHOLD:
+                    await websocket.send_json({"status": "SPOOF_ATTACK", 
+                                               "attack_type": liveness_result["attack_type"],
+                                               "liveness_score": round(avg_liveness_score, 3),
+                                               "liveness_probabilities": liveness_result["probabilities"],
+                                               "liveness_threshold": liveness_result["treshold"],
+                                               "liveness_progress": progress
+                                               })
+                    best_embedding = None
+                    best_score = -1.0
+                    continue
+                
+                # 5. Cerca in db
+                if best_embedding is None:
+                    await websocket.send_json({"status": "ERROR", "message": "Nessun embedding valido trovato."})
+                    continue
+                
+                user_result = searchUser_byEmbedding(best_embedding, SIMILARITY_THRESHOLD)
+                
+                # 6. Risposta
+                payload = {
+                    "status": "MATCH" if user_result.isMatch else "NO_MATCH",
+                    "attack_type": liveness_result["attack_type"],
+                    "similarity": round(user_result.similarity, 3),
+                    "liveness_score": round(avg_liveness_score, 3),
+                    "liveness_probabilities": liveness_result["probabilities"],
+                    "liveness_threshold": liveness_result["treshold"],
+                    "similarity_threshold": SIMILARITY_THRESHOLD,
+                    "vector_score": round(user_result.vectorScore, 3) if user_result.vectorScore is not None else 0.0,
+                    "embedding_score": round(score, 3),
+                    "user": user_result.user.model_dump() if user_result.user else None,
+                }
+                await websocket.send_json(payload)
 
     except WebSocketException as e:
        pass
