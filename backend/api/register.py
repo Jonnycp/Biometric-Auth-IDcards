@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Request, UploadFile, File, Form
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
 import io
 
 from backend.core.id_card import decodeImage, preprocessIDCard
@@ -48,7 +48,7 @@ async def registerUser(req: Request,
         fixContrast=fixes["contrast"]
     )
 
-async def checkImageFile(file: UploadFile):
+async def checkImageFile(file: UploadFile) -> bytes:
     # 1. Verifica tipo MIME
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
