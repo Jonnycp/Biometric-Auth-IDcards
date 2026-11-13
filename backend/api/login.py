@@ -1,4 +1,4 @@
-from fastapi import WebSocket, WebSocketException
+from fastapi import WebSocket, WebSocketException, WebSocketDisconnect
 from PIL import Image
 from dotenv import load_dotenv
 import io
@@ -22,7 +22,7 @@ async def ws_loginUser(websocket: WebSocket):
 
     app = websocket.app
     recognizer = app.state.recognizer
-    liveness_session = app.state.liveness_session
+    liveness_session = app.state.livenessSession
 
     #PARAMETRI LIVENESS
     liveness_scores = []
@@ -71,6 +71,7 @@ async def ws_loginUser(websocket: WebSocket):
                 spoof_attack_detected_count += 1
 
             # 4.2 Listen frames for liveness
+            print(f"Frame {len(liveness_scores)}/{FRAMES_LIVENESS} - Liveness score: {liveness_result['score']:.3f} - Progress: {progress}% - Spoof attacks detected: {spoof_attack_detected_count}/{MAX_SPOOF_ATTACKS}")
             if len(liveness_scores) < FRAMES_LIVENESS:
                 if(spoof_attack_detected_count > MAX_SPOOF_ATTACKS):
                     await websocket.send_json({"status": "SPOOF_ATTACK", 
@@ -114,7 +115,7 @@ async def ws_loginUser(websocket: WebSocket):
                 if best_embedding is None:
                     await websocket.send_json({"status": "ERROR", "message": "Nessun embedding valido trovato."})
                     continue
-                
+
                 user_result = searchUser_byEmbedding(best_embedding, SIMILARITY_THRESHOLD)
                 
                 # 6. Risposta
@@ -128,14 +129,15 @@ async def ws_loginUser(websocket: WebSocket):
                     "similarity_threshold": SIMILARITY_THRESHOLD,
                     "vector_score": round(user_result.vectorScore, 3) if user_result.vectorScore is not None else 0.0,
                     "embedding_score": round(score, 3),
-                    "user": user_result.user.model_dump() if user_result.user else None,
+                    "user": user_result.user.model_dump(mode="json") if user_result.user else None,
                 }
                 await websocket.send_json(payload)
+                break #termina la connessione
 
-    except WebSocketException as e:
+    except (WebSocketException, WebSocketDisconnect) as e:
        pass
     except Exception as e:
-        await websocket.close(code=1011, reason=str(e))
+        await websocket.close(code=1011, reason=str(e)[:120])
 
 def checkImageFrameWS(frameBytes: bytes) -> dict[str, str | bool]:
     # Controlla se vuoto
