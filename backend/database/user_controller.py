@@ -28,6 +28,7 @@ def searchUser_byEmbedding(query_embedding: np.ndarray, threshold: float = 0.35)
                 "$project": {
                     "_id": 1,
                     "fullName": 1,
+                    "score": 1,
                     "createdAt": 1,
                     "vector_score": {"$meta": "vectorSearchScore"},
                     "embedding": 1
