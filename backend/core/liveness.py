@@ -12,7 +12,7 @@ def loadLivenessModel(modelPath: str):
 
 # Scala bbox faccia per liveness
 def scaleBbox(image: np.ndarray, bbox: np.ndarray, scale: float = 2.7, out_size: tuple = (80, 80)):
-    src_h, src_w = image.shape
+    src_h, src_w = image.shape[:2]
     x1, y1, x2, y2 = bbox
 
     w_box = x2 - x1
