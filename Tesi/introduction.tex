@@ -1,4 +1,41 @@
 \chapter*{\scshape Introduzione e Scopo della Tesi}
-\addcontentsline{toc}{chapter}{\scshape Introduzione e Scopo della Tesi} %this line allows that the introduction could be in the table of contents
+\addcontentsline{toc}{chapter}{\scshape Introduzione e Scopo della Tesi}
 
-Inserire qui il testo dell’introduzione.
+Negli ultimi anni, la profonda digitalizzazione dei servizi finanziari, unita all'espansione dei servizi di \textit{e-Government}, ha determinato una trasformazione radicale dei \textbf{processi di autenticazione} e gestione dell'identità digitale.
+Si è passati dai tradizionali controlli fisici \textit{de visu}, a sistemi telematici di autenticazione elettronica~\cite{benalcazarSyntheticIDCard2023}  basati su credenziali digitali, come le carte d'identità elettroniche (CIE 3.0), i sistemi SPID e le soluzioni eIDAS 2.0.
+In questo scenario, la \textbf{verifica biometrica facciale} si è affermata come protocollo cardine per superare i limiti strutturali delle autenticazioni tradizionali basate su password, token fisici o OTP, le quali sono intrinsecamente suscettibili a furto, smarrimento o attacchi di \textit{phishing}, \textit{skimming} e \textit{spoofing}~\cite{azizFaceRecognitionBase2024}.
+Tuttavia la sola acquisizione e validazione del documento d'identità \textbf{non è sufficiente} a garantire la sicurezza del processo di autenticazione, in quanto le carte d'identità possono essere rubate, contraffatte o riprodotte digitalmente~\cite{kelesRepublicTurkeyIdentity2020}.
+I primi tentativi di migliorare questo processo hanno portato all'evoluzione storica della \textit{computer vision} applicata al riconoscimento facciale~\cite{azizFaceRecognitionBase2024}.
+Le prime architetture rilevavano il volto con metodi di riconoscimento olistici basati sulla riduzione lineare nello spazio dei pixel, come \textit{\gls{pca}} e \textit{\gls{lda}}. Successivamente, si sono affiancati i descrittori di texture come \textit{\gls{lbp}} ideati per codificare le micro-strutture del viso, confrontando le intensità dei pixel adiacenti.
+Nonostante le discrete prestazioni, questi paradigmi classici, si dimostrano \textbf{poco robusti} in ambienti reali non controllati (\textit{unconstrained environments}): ovvero variazioni non lineari combinate di posa, illuminazione ed espressione facciale, insieme a distorsioni prospettiche e rumore dei sensori ottici~\cite{azizFaceRecognitionBase2024,shiDocFaceMatchingID2018}.
+
+Con l'avvento delle \textit{\gls{cnn}} e dei modelli di \textit{deep learning}, si è potuto sviluppare un paradigma più robusto nel riconoscimento facciale: il \textit{Deep Face Recognition}~\cite{sanzGoverningPrivacyPreservingFace2026} con cui l'estrazione delle caratteristiche biometriche è formalizzata mediante il concetto di \textbf{\textit{deep face embedding}}, ovvero una funzione parametrica non lineare~\cite{georgeLightweightCrossSpectralFace2026} definita dall'Equazione~\eqref{eq:deepFaceEmbedding}:
+\begin{equation}
+    \label{eq:deepFaceEmbedding}
+    f_\theta: \mathbb{R}^{H \times W \times 3} \rightarrow \mathbb{R}^{512}
+\end{equation}
+L' Equazione~\eqref{eq:deepFaceEmbedding} implementata in una rete neurale di pesi $\theta$, trasforma il tensore RGB di un volto di dimensioni spaziali $H \times W$ sui 3 canali cromatici in un \textbf{vettore numerico} $e \in \mathbb{R}^{512}$. Tale vettore viene poi proiettato e normalizzato su un'ipersfera unitaria a 512 dimensioni, in modo che la sua norma euclidea soddisfi il Vincolo~\eqref{eq:vincoloDeepFaceEmbedding}:
+\begin{equation}
+    \label{eq:vincoloDeepFaceEmbedding}
+    \lVert e \rVert_2 = 1
+\end{equation}
+Per far sì che la rete disponga correttamente i volti sull'ipersfera, in addestramento si utilizzano funzioni di costo che massimizzano il margine angolare tra le diverse identità, come \textit{ArcFace}~\cite{dengArcFaceAdditiveAngular2022} o approcci adattivi alla qualità dell'immagine come \textit{AdaFace}~\cite{kimAdaFaceQualityAdaptive2023}. Grazie al Vincolo geometrico~\eqref{eq:vincoloDeepFaceEmbedding}, la rete impara a \textbf{raggruppare} in punti molto vicini le foto della stessa persona e a separare con un ampio angolo quelle di persone diverse. 
+Di conseguenza, confrontare due volti per una verifica 1:1 equivale semplicemente a calcolare la \textit{cosine similarity} tra i rispettivi vettori.
+Tuttavia, la trasposizione di questo modello matematico in un'infrastruttura software reale per la verifica remota tramite documento di identità espone a diverse \textbf{sfide ingegneristiche} critiche tra cui:
+\begin{itemize}
+    \item \textbf{Cross-Domain Matching}: il confronto tra un volto acquisito da una fototessera incisa al laser su policarbonato (di bassa risoluzione, pattern di sicurezza e age-gap) e un flusso video acquisito da una fotocamera, può degradare le prestazioni del modello~\cite{shiDocFaceMatchingID2018};
+    \item \textbf{\gls{pad}}: la vulnerabilità alla sottomissione fraudolenta di foto stampate o video riprodotti su schermi (\textit{replay attacks}).  La soluzione richiede l'adozione di modelli di \textit{liveness detection}~\cite{gonzalezForgedPresentationAttack2025};
+    \item \textbf{Protezione dei dati biometrici}: la gestione sicura dei dati biometrici, considerati dati sensibili secondo le normative europee come il GDPR e l'AI Act: esse richiedono architetture software che minimizzino la conservazione dei dati sensibili e implementino tecniche di anonimizzazione e cifratura~\cite{otroshishahrezaBenchmarkingCancelableBiometrics2022, sanzGoverningPrivacyPreservingFace2026};
+    \item \textbf{Riduzione della latenza e ottimizzazione delle risorse}: l'implementazione di un'architettura \textit{edge/client-server} in tempo reale necessita di contenere la latenza di rete, ottimizzando l'uso della CPU e della memoria, garantendo una scalabilità efficiente del servizio~\cite{georgeLightweightCrossSpectralFace2026}.
+\end{itemize}
+Alla luce di ciò, il presente lavoro di tesi si propone di sviluppare e validare sperimentalmente un prototipo di \textbf{software end-to-end}, operante in tempo reale, per l'autenticazione biometrica \textit{cross-domain} e \textit{liveness detection} su documenti d'identità.
+È stata ingegnerizzata un'architettura client-server basata su:
+\begin{itemize}
+    \item \textbf{Backend asincrono} in \textit{FastAPI} ottimizzato con il pattern architetturale \textit{Lifespan Context} per mantenere i modelli neurali pre-allocati in memoria RAM
+    \item \textbf{Frontend} multipiattaforma in \textit{React} \gls{pwa}
+    \item \textbf{Comunicazione bidirezionale} tra client e server tramite \textit{WebSocket} governata da una \gls{fsm}
+    \item \textbf{Database} \textit{MongoDB Atlas Vector Search} per la persistenza dei vettori biometrici
+\end{itemize}
+Il sistema integra una pipeline dedicata alla validazione e preprocessing geometrico\footnote{Il preprocessing geometrico equivale alla rettifica prospettica e al miglioramento locale del contrasto tramite algoritmo \gls{clahe}} per documenti d'identità conformi allo standard internazionale \textbf{ICAO 9303 formato TD1}, come la \gls{cie} e la patente di guida italiana.
+È accoppiata sia al framework \textit{InsightFace ArcFace} per l'allineamento facciale sui 5 keypoint biometrici e l'estrazione degli embeddings a 512 dimensioni, sia alla rete neurale \textit{MiniFASNet (Silent-Face-Anti-Spoofing)}~\cite{liSilentFaceAntiSpoofing2024}, eseguita su \textit{ONNX Runtime}, per la liveness detection passiva in tempo reale.
+L'intera piattaforma è stata inoltre progettata secondo i principi di \textit{Privacy-by-Design} e \textit{Zero-Disk Retention}, ovvero i principi di \textbf{minimizzazione dei dati} (Art. 5 e Art. 9 del GDPR). Le scansioni dei documenti e i frame catturati dalla webcam vengono processati esclusivamente nella memoria volatile e distrutti istantaneamente al termine dell'estrazione matematica del template, scongiurando qualsiasi archiviazione su disco delle immagini dei volti.
