@@ -135,7 +135,7 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
     <Card
       variant="default"
       className={`w-full bg-zinc-900/70 border ${
-        isMatch ? "border-emerald-500/50" : "border-amber-500/50"
+        isMatch ? "border-emerald-500/50" : "border-red-500/50"
       } rounded-2xl p-6 shadow-2xl animate-in fade-in duration-300 flex flex-col gap-4`}
     >
       {/* 1. Esito Principale & Nome Utente (SEMPRE VISIBILE SE PRESENTE NEL DB!) */}
@@ -145,7 +145,7 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
             className={`w-12 h-12 rounded-md flex items-center justify-center ${
               isMatch
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                : "bg-red-500/20 text-red-400 border border-red-500/30"
             }`}
           >
             <Icon
@@ -156,7 +156,7 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
           <div>
             <span
               className={`text-[11px] font-bold uppercase tracking-wider block ${
-                isMatch ? "text-emerald-400" : "text-amber-400"
+                isMatch ? "text-emerald-400" : "text-red-400"
               }`}
             >
               {isMatch
@@ -166,7 +166,7 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
                 : "Utente Non Riconosciuto"}
             </span>
             <h3 className="text-xl font-bold text-zinc-100">
-              {user?.fullName || "Profilo Sconosciuto"}
+              {user?.fullName || "Sconosciuto"}
             </h3>
           </div>
         </div>
