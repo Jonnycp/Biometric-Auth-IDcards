@@ -129,7 +129,7 @@ async def ws_loginUser(websocket: WebSocket):
                     "similarity_threshold": SIMILARITY_THRESHOLD,
                     "vector_score": round(user_result.vectorScore, 3) if user_result.vectorScore is not None else 0.0,
                     "embedding_score": round(score, 3),
-                    "user": user_result.user.model_dump(mode="json") if user_result.user else None,
+                    "user": user_result.user.model_dump(mode="json") if user_result.user and (user_result.similarity >= SIMILARITY_THRESHOLD-0.10) else None,
                 }
                 await websocket.send_json(payload)
                 break #termina la connessione
