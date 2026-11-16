@@ -70,13 +70,13 @@
     \end{center}
     
     {\scshape \noindent \bfseries Relatore: \par}
-    {\scshape \noindent\bfseries Chiar.mo Prof./Dott. Nome Cognome \par}
+    {\scshape \noindent\bfseries Prof. Antonio Ferrara \par}
     \vspace{8mm}
     
-    {\scshape \noindent \bfseries Correlatori: \par}
-    {\scshape \noindent \bfseries Prof./Dott. Nome Cognome \par}
-    {\scshape \noindent \bfseries Prof./Dott. Nome Cognome \par}
-    \vspace{10mm}
+    % {\scshape \noindent \bfseries Correlatori: \par}
+    % {\scshape \noindent \bfseries Prof./Dott. Nome Cognome \par}
+    % {\scshape \noindent \bfseries Prof./Dott. Nome Cognome \par}
+    % \vspace{10mm}
     
     \begin{flushright}
     {\scshape \bfseries Laureando: \par}
@@ -85,7 +85,7 @@
     
     \begin{center} 
         {\noindent\rule{160mm}{0.8pt} \par} 
-        {\bfseries ANNO ACCADEMICO 0000-0000 \par}
+        {\bfseries ANNO ACCADEMICO 2025-2026 \par}
     \end{center}
     \null\vfill
 \end{alwayssingle}
