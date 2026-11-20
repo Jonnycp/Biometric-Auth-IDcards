@@ -32,7 +32,7 @@ def orderPoints(pts: np.ndarray):
 
 # Identifica contorno carta di identità e raddrizza prospettiva
 # Formato standard ID-1 (85.6 mm × 54 mm) con ratio ICAO TD1 (856x540)
-def fixProspective(image: np.ndarray, targetSize = (856, 856)):
+def fixProspective(image: np.ndarray, targetSize = (856, 540)):
     # Riduci rumore
     original = image.copy()
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) #bianco è nero, più efficiente per trovare contorni
