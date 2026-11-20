@@ -76,23 +76,28 @@ draw_activation(14.9, 2.8,  2.2)   # MongoDB (Insert)
 # ==============================================================================
 # 4. FUNZIONE FRECCE MESSAGGI UML
 # ==============================================================================
-def draw_msg(x1, x2, y, label, dashed=False, self_call=False):
+# ==============================================================================
+# 4. FUNZIONE FRECCE MESSAGGI UML
+# ==============================================================================
+def draw_msg(x1, x2, y, label, dashed=False, self_call=False, color="#222222"):
+    # Usa il colore personalizzato per il testo se diverso dal default, altrimenti nero standard
+    text_color = color if color != "#222222" else "#111111"
+    
     if self_call:
-        # Auto-chiamata a destra della lifeline
         loop_w = 0.65
         loop_h = 0.32
-        ax.plot([x1 + 0.11, x1 + loop_w, x1 + loop_w], [y, y, y - loop_h], color="#222222", lw=1.1, zorder=4)
+        ax.plot([x1 + 0.11, x1 + loop_w, x1 + loop_w], [y, y, y - loop_h], color=color, lw=1.1, zorder=4)
         ax.annotate('', xy=(x1 + 0.11, y - loop_h), xytext=(x1 + loop_w, y - loop_h),
-                    arrowprops=dict(arrowstyle='-|>', lw=1.1, color='#222222', mutation_scale=11), zorder=4)
-        ax.text(x1 + loop_w + 0.12, y - loop_h/2, label, ha='left', va='center', fontsize=8.4, color='#111111',
+                    arrowprops=dict(arrowstyle='-|>', lw=1.1, color=color, mutation_scale=11), zorder=4)
+        ax.text(x1 + loop_w + 0.12, y - loop_h/2, label, ha='left', va='center', fontsize=8.4, color=text_color,
                 bbox=dict(boxstyle='square,pad=0.1', facecolor='white', edgecolor='none', alpha=0.85), zorder=5)
     else:
         offset = 0.12 if x2 > x1 else -0.12
         ls = '--' if dashed else '-'
         ax.annotate('', xy=(x2 - offset, y), xytext=(x1 + offset, y),
-                    arrowprops=dict(arrowstyle='-|>', lw=1.15, ls=ls, color='#222222', mutation_scale=12), zorder=4)
+                    arrowprops=dict(arrowstyle='-|>', lw=1.15, ls=ls, color=color, mutation_scale=12), zorder=4)
         mx = (x1 + x2) / 2.0
-        ax.text(mx, y + 0.08, label, ha='center', va='bottom', fontsize=8.4, color='#111111',
+        ax.text(mx, y + 0.08, label, ha='center', va='bottom', fontsize=8.4, color=text_color,
                 bbox=dict(boxstyle='square,pad=0.08', facecolor='white', edgecolor='none', alpha=0.85), zorder=5)
 
 # ==============================================================================
@@ -145,9 +150,10 @@ ax.text(alt_x + 1.05, alt_mid - 0.22, r"[Soggetto univoco: $\max_j S_c(e_{\mathr
         ha='left', va='center', fontsize=8.6, fontweight='bold', color='#166534', zorder=5)
 
 # Messaggi dentro blocco else
-draw_msg(7.8, 11.4, 3.65, r"8b. biohash.py: genera seme $K$ e template $c_{\mathrm{ID}} \in \{0,1\}^m$")
-draw_msg(11.4, 7.8, 3.15, r"Restituisce $(c_{\mathrm{ID}}, K)$", dashed=True)
-draw_msg(7.8, 14.9, 2.70, r"9. INSERT documento ($full\_name, c_{\mathrm{ID}}, K, timestamp$)")
+BIOHASH_COLOR = "#0369a1"
+draw_msg(7.8, 11.4, 3.65, r"8b. biohash.py: genera seme $K$ e template $c_{\mathrm{ID}} \in \{0,1\}^m$", color=BIOHASH_COLOR)
+draw_msg(11.4, 7.8, 3.15, r"Restituisce $(c_{\mathrm{ID}}, K)$", dashed=True, color=BIOHASH_COLOR)
+draw_msg(7.8, 14.9, 2.70, r"9. INSERT documento ($fullName, e_{\mathrm{ID}}, K, timestamp$)")
 draw_msg(14.9, 7.8, 2.25, "Conferma scrittura", dashed=True)
 draw_msg(7.8, 7.8,  1.95, "10. Deallocazione matrici RAM (Zero-Disk Retention)", self_call=True)
 draw_msg(7.8, 4.4,  1.50, "11. HTTP 201 Created (JSON DTO)", dashed=True)

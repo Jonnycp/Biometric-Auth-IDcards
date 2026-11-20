@@ -151,7 +151,7 @@ ax.text(alt_x + 1.00, alt_mid - 0.20, r"[Vitalità confermata: $\bar{L} \geq \ta
 # Messaggi dentro else
 draw_msg(7.8, 11.4, 4.05, r"7b. Estrae embedding $e_{\mathrm{live}} \in \mathbb{R}^{512}$ solo su $f_{\mathrm{best}}$")
 draw_msg(11.4, 7.8, 3.55, r"Restituisce $e_{\mathrm{live}}$", dashed=True)
-draw_msg(7.8, 14.9, 3.10, r"8b. Singola query $vectorSearch $1:N$ + verifica BioHash")
+draw_msg(7.8, 14.9, 3.10, r"8b. Singola query $vectorSearch $1:N$")
 draw_msg(14.9, 7.8, 2.60, r"9. Candidato migliore e score $S_c(e_{\mathrm{live}}, e_{\mathrm{ID}})$", dashed=True)
 draw_msg(7.8, 7.8,  2.25, r"10. Stato $s_3$: MATCH / NO_MATCH ($S_c \geq \tau$) + pulizia RAM", self_call=True)
 draw_msg(7.8, 4.4,  1.60, "11. Verdetto finale JSON + chiusura WSS", dashed=True)
