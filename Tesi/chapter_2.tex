@@ -34,7 +34,7 @@ La Tabella~\ref{tab:confrontoLegacyNuovo} sintetizza le criticità analizzate me
     \end{tabular*}
     \caption{Confronto tra le criticità riscontrate nel prototipo pregresso e le soluzioni introdotte nella nuova architettura realizzata.}~\label{tab:confrontoLegacyNuovo}
 \end{table}
-
+\newpage
 Sulla base delle evidenze raccolte e dei vincoli teorico-normativi esposti nel capitolo~\ref{cap:1-fondamenti}, si è proceduto alla specifica formale dei requisiti della nuova piattaforma software.
 I requisiti sono stati classificati secondo lo standard dell'ingegneria del software in:
 \begin{itemize}
@@ -48,7 +48,7 @@ La fase di \textbf{\textit{live verification}} consente invece la verifica dell'
 In Figura~\ref{fig:diagrammaCasiDuso} è riportato il diagramma dei casi d'uso UML del sistema progettato, che illustra le interazioni tra l'utente e i flussi operativi di \textit{enrollment} e \textit{live verification}.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{images/diagramma-casi-duso.png}
+    \includegraphics[angle=90,height=1.2\textwidth]{images/diagramma-casi-duso.png}
     \caption{Diagramma dei Casi d'Uso UML del sistema di autenticazione biometrica.}\label{fig:diagrammaCasiDuso}
 \end{figure}
 Nelle tabelle~\ref{tab:requisitiFunzionali} e~\ref{tab:requisitiNonFunzionali} sono riportati rispettivamente l'elenco completo e strutturato dei requisiti funzionali e non funzionali del progetto, con le relative priorità secondo la metodologia \textit{\gls{moscow}}.
@@ -128,15 +128,16 @@ Inoltre, il software è stato progettato seguendo i principi di modularità e se
     \item \textbf{Livello di presentazione} \textit{(Presentation Tier)}: consiste in un'interfaccia web multipiattaforma (\gls{pwa}) che accede alla fotocamera del dispositivo tramite le API standard del browser, senza richiedere lettori o sensori dedicati: corrisponde al requisito $RNF3$. 
     Da evidenziare che per ridurre l'occupazione di banda e la latenza di trasmissione sulla rete, il client effettua un \textbf{ridimensionamento} e una compressione preliminare dei fotogrammi prima dell'invio al server.
     Contemporaneamente, vengono mostrati all'utente i feedback visivi in tempo reale sullo stato di avanzamento della sessione: requisito $RF6$~\cite{kelesRepublicTurkeyIdentity2020};
-    \item \textbf{Livello Applicazione e Biometrico} \textit{(Backend FastAPI)}: costituisce il cuore computazionale del sistema, sviluppato in \textit{Python 3.11} con il framework asincrono \textit{FastAPI}. Ispirandosi ai pattern a servizi debolmente accoppiati (\textit{loosely coupled services})~\cite{sawetsutipunFacialImageVerification2020a}, la logica biometrica interna è suddivisa, a sua volta, in cinque moduli indipendenti:
+    \item \textbf{Livello Applicazione e Biometrico} \textit{(Backend FastAPI)}: costituisce il cuore computazionale del sistema con il framework asincrono \textit{FastAPI}. Ispirandosi ai pattern a servizi debolmente accoppiati (\textit{loosely coupled services})~\cite{sawetsutipunFacialImageVerification2020a}, la logica biometrica interna è suddivisa, a sua volta, in quattro moduli indipendenti, a cui si aggiunge un quinto modulo di protezione del template previsto come evoluzione:
     \begin{itemize}
         \item \textbf{Modulo di rettifica documentale}: che isola i quattro vertici della \gls{cie} applicando la correzione omografica (\textit{warp perspective}) a $856 \times 540$ pixel e il filtro \gls{clahe} per migliorare il contrasto locale~\cite{groteImageQualityAssessment2026,fangIDCardIdentification2017};
         \item \textbf{Modulo di rilevamento e allineamento}: che individua il volto e i 5 keypoint rigidi eseguendo la trasformazione affine a $112 \times 112$ pixel;
         \item \textbf{Modulo di estrazione e confronto}: che calcola l'embedding $e \in \mathbb{R}^{512}$ tramite \gls{arcface} e la \textit{Cosine Similarity};
         \item \textbf{Modulo di anti-spoofing e liveness detection}: che esegue il modello passivo \textit{MiniFASNet} su \gls{onnx} Runtime
-        \item \textbf{Modulo di BioHashing}: che applica la trasformazione di \textit{biohashing} all'embedding $e$ con un seed casuale per garantire la non invertibilità del vettore e la protezione della privacy.
-    \end{itemize}Per abbattere i tempi di risposta e soddisfare il requisito $RNF1$, il livello applicativo mantiene le sessioni dei modelli neurali \textbf{pre-allocate} in memoria RAM (secondo il ciclo di vita approfondito nella Sezione~\ref{cap2.4-persistenza}), abbattendo i tempi di inferenza a $30{-}50~\text{ms}$ ed eliminando qualsiasi scrittura di file temporanei su disco ($RNF2$);
-    \item \textbf{Livello dei Dati} \textit{(Data Tier)}: consiste in un database vettoriale \textit{MongoDB Atlas Vector Search} che gestisce la persistenza multi-utente archiviando esclusivamente: l'embedding a 512 dimensioni protetto con \textit{biohashing} con rispettivo seed, il nominativo dell'utente e il \textit{timestamp} di creazione, in pieno rispetto dei principi \textit{Privacy by Design} descritti nel Capitolo~\ref{cap:1.4-normative}. Tale livello espone inoltre gli indici di ricerca vettoriali, necessari per le interrogazioni $1:N$ ad alta velocità~\cite{hezelFastEfficientApproximate2026}.
+        \item \textbf{Modulo di BioHashing}: che applicherebbe la trasformazione di \textit{biohashing} all'embedding $e$ con un \textit{seed} specifico dell'utente per garantire la non invertibilità del vettore e la protezione della privacy. Non è attivo nella versione del software attuale, perchè incompatibile con l'identificazione $1:N$ su indice vettoriale, come discusso nel Capitolo~\ref{cap:2.4.2-modelloDati}.
+    \end{itemize}Per abbattere i tempi di risposta e soddisfare il requisito $RNF1$, il livello applicativo mantiene le sessioni dei modelli neurali \textbf{pre-allocate} in memoria RAM (secondo il ciclo di vita approfondito nel Capitolo~\ref{cap:3-implementazione}), abbattendo i tempi di inferenza a $30{-}50~\text{ms}$ ed eliminando qualsiasi scrittura di file temporanei su disco ($RNF2$);
+    
+    \item \textbf{Livello dei Dati} \textit{(Data Tier)}: consiste in un database vettoriale \textit{MongoDB Atlas Vector Search} che gestisce la persistenza multi-utente archiviando esclusivamente: l'embedding a 512 dimensioni (nella versione attuale non ancora protetto con \textit{biohashing}, si veda il Capitolo~\ref{cap:2.4.2-modelloDati}), il nominativo dell'utente e il \textit{timestamp} di creazione, in pieno rispetto dei principi \textit{Privacy by Design} descritti nel Capitolo~\ref{cap:1.4-normative}. Tale livello espone inoltre gli indici di ricerca vettoriali, necessari per le interrogazioni $1:N$ ad alta velocità~\cite{malkovEfficientRobustApproximate2018}.
 \end{enumerate}
 \begin{figure}
     \centering
@@ -186,8 +187,8 @@ La Tabella~\ref{tab:confrontoFlussi} sintetizza il confronto architetturale e pr
 
 \section{Modellazione delle pipeline e Macchina a Stati Finiti (FSM)}\label{cap:2.3-pipeline}
 Definita l'infrastrutura Client-Server e i protocolli di trasporto, la progettazione si è concentrata sulla modellazione algoritmica dei due flussi opeativi principali del sistema: \textit{enrollment} e \textit{live verification}, governata da una \textbf{Macchina a Stati Finiti (\gls{fsm})}.
-Il flusso di \textit{enrollment}, innescato dalla chiamata sincrona \texttt{POST /register}, ha l'obiettivo di acquisire il lato anteriore di un documento conforme allo standard ICAO 9303 formato TD1 (come la \gls{cie} o la patente di guida italiana), normalizzarne le proprietà geometriche e prospettiche ed estrarre un template di riferimento univoco e protetto~\cite{icao9303,kelesRepublicTurkeyIdentity2020}. 
-Alla chiamata dell'\textit{endpoint}, nel rispetto del vincolo $RNF2$, lo stream binario ricevuto nel payload \texttt{multipart/form-data} viene decodificato direttamente in memoria volatile (RAM) come matrice numerica multibanda e attraversa i cinque stadi sequenziali descritti nel Capitolo~\ref{cap:2.2-architettura}. In particolare nel modulo di \textbf{rettifica documentale} l'immagine viene sottoposta a una serie di operazioni, per correggere le inevitabili rotazioni e distorsioni prospettiche, essendo acquisita a mano libera dall'utente in condizioni non vincolate:
+Il flusso di \textit{enrollment}, innescato dalla chiamata sincrona \texttt{POST /register}, ha l'obiettivo di acquisire il lato anteriore di un documento conforme allo standard ICAO 9303 formato TD1 (come la \gls{cie} o la patente di guida italiana), normalizzarne le proprietà geometriche e prospettiche ed estrarre un template di riferimento univoco~\cite{icao9303,kelesRepublicTurkeyIdentity2020}. 
+Alla chiamata dell'\textit{endpoint}, nel rispetto del vincolo $RNF2$, lo stream binario ricevuto nel payload \texttt{multipart/form-data} viene decodificato direttamente in memoria volatile (RAM) come matrice numerica multibanda e attraversa i moduli descritti nel Capitolo~\ref{cap:2.2-architettura}. In particolare nel modulo di \textbf{rettifica documentale} l'immagine viene sottoposta a una serie di operazioni, per correggere le inevitabili rotazioni e distorsioni prospettiche, essendo acquisita a mano libera dall'utente in condizioni non vincolate:
 \begin{enumerate}
     \item \textbf{Conversione in scala di grigi e applicazione di un filtro di \textit{Gaussian Blur}} per ridurre il rumore e le texture non uniformi. Permette di individuare meglio i gradienti dei bordi mediante l'algoritmo di \textit{Canny Edge Detection};
     \item \textbf{Analisi topologica dei contorni e approssimazione poligonale} tramite algoritmo di \textit{Douglas-Peucker}: si isola il quadrilatero di area massima corrispondente ai quattro vertici fisici della tessera sfruttando le dimensioni fisiche nominali del formato ID-1 / ICAO TD1 ($85{,}6 \times 54{,}0~\text{mm}$), caratterizzato da un \textit{aspect ratio} di $85{,}6/54{,}0 \approx 1{,}58$~\cite{icao9303};
@@ -207,15 +208,19 @@ L'immagine rettificata e migliorata, viene quindi passata al modulo di \textbf{r
 \end{enumerate}
 Successivamente, il volto con i keypoint allineati viene passato al modulo di \textbf{estrazione e confronto}, che con la rete \textit{ResNet-100} (\texttt{buffalo\_l}) processa il tensore $112 \times 112 \times 3$ e genera un embedding $e \in \mathbb{R}^{512}$ normalizzato ($\lVert e \rVert_2 = 1$) come specificato nel Capitolo~\ref{cap:1-fondamenti}~\cite{dengArcFaceAdditiveAngular2022}.
 Prima di procedere alla registrazione, per soddisfare il requisito di unicità ($RF5$) conforme alle specifiche di \textit{identification} ICAO 9303~\cite{icao9303}, il backend esegue una query vettoriale $1:N$ sull'indice \textit{MongoDB Atlas Vector Search} confrontando $e_{\text{ID}}$ con tutti i template già registrati nel database attraverso la \textit{Cosine Similarity}.
-Qualora il punteggio massimo di \textit{similarità coseno} superi la soglia decisionale, ovvero $\max_{j} S_c(e_{\text{ID}}, e_j) \ge \tau$, la transazione viene interrotta restituendo un errore semantico \texttt{HTTP 409 Conflict} al client, notificando che il soggetto biometrico è già registrato. In caso contrario, il vettore $e_{\text{ID}}$ viene protetto con la trasformazione di \textit{biohashing} descritta nel capitolo~\ref{cap:1.4-normative}, a partire da un seme crittografico casuale $K$ specifico dell'utente, producendo il template binario irreversibile $c_{\text{ID}} \in {\{0, 1\}}^m$ che viene indicizzato nel database insieme al nominativo dell'utente, al seed e al \textit{timestamp} di creazione.
+Qualora il punteggio massimo di \textit{similarità coseno} superi la soglia decisionale, ovvero $\max_{j} S_c(e_{\text{ID}}, e_j) \ge \tau$, la transazione viene interrotta restituendo un errore semantico \texttt{HTTP 409 Conflict} al client, notificando che il soggetto biometrico è già registrato. 
+In caso contrario, il vettore $e_{\text{ID}}$ viene indicizzato nel database come template di riferimento, insieme al nominativo dell'utente, al seed e al \textit{timestamp} di creazione. Nella versione attuale l'embedding è conservato in chiaro: la sua trasformazione tramite \textit{biohashing} descritta nel capitolo~\ref{cap:1.4-normative} non è stato possibile implementarla per una scelta di progettazione, discussa nella Sezione~\ref{cap:2.4.2-modelloDati}.
 Invece le matrici d'immagine del documento e del ritaglio facciale vengono immediatamente deallocate dalla RAM ed eliminate.
 In figura~\ref{fig:diagrammaSequenzaRegistrazione} è riportato il diagramma di sequenza UML che modella l'interazione temporale tra i componenti durante la pipeline di \textit{enrollment}.
-\begin{figure}[H]
+
+\begin{figure}[p]
     \centering
-    \includegraphics[width=\linewidth]{images/diagrammaSequenza-Registrazione.png}
+    \includegraphics[angle=90,width=\linewidth]{images/diagrammaSequenza-Registrazione.png}%TODO: correggere immagine.. non viene fatto insert di biohash
     \caption{Diagramma di sequenza UML della pipeline di \textit{enrollment} tramite \gls{cie}}
     \label{fig:diagrammaSequenzaRegistrazione}
 \end{figure}
+
+\clearpage
 Una volta registrato il template, e indicizzata la nuova identità, l'utente può accedere al flusso di autenticazione in diretta (\textit{live verification}) tramite il canale \gls{wss} persistente.
 Come evidenziato nell'analisi delle criticità (Capitolo~\ref{cap:2.1-criticita}), il flusso di \textit{live verification} richiede un'elaborazione in tempo reale di più fotogrammi per valutare la presenza biologica reale dell'utente, evitando l'instabilità dovuta ad artefatti di \textit{motion blur}, variazioni di illuminazione o \textit{pose} estreme o attacchi \gls{pa}~\cite{liSilentFaceAntiSpoofing2024}.
 Per garantire una valutazione spazio-temporale robusta ($RF3$ e $RF4$), il ciclo di vita di ciascuna connessione Websocket è governato sul server da una \textbf{Macchina a Stati Finiti (\gls{fsm})} deterministica, formalmente definita dalla quintupla nella equazione~\ref{eq:fsm}~\cite{sommerville2015software, hopcroftIntroductionAutomataTheory2007a}:
@@ -264,18 +269,20 @@ Il funzionamento algoritmico della pipeline di autenticazione si sviluppa attrav
 
     \item \textbf{Stato $s_2$ \texttt{SPOOF\_ATTACK}}: si finisce in questo stato se al termine della valutazione del buffer (o anticipatamente in presenza di $M$ frame fortemente negativi), risulta $\bar{L} < \tau_{\text{liveness}}$ oppure $\sigma_{\text{kps}}^2 < \sigma_{\min}^2$. Il server blocca l'esecuzione del modulo di riconoscimento facciale, notifica al frontend il tentativo di \textit{spoofing} e dealloca il buffer dalla RAM;
 
-    \item \textbf{Stato $s_3$ \texttt{MATCH / NO\_MATCH}}: se la condizione di vitalità è soddisfatta, il backend esegue il modulo di estrazione e confronto sul fotogramma ottimo $f_{\text{best}}$, calcolando l'embedding $e_{\text{live}} \in \mathbb{R}^{512}$ tramite \textit{\gls{arcface}} e lancia \textbf{una singola query vettoriale $1:N$} su \textit{MongoDB Atlas Vector Search}. 
-    Ricevuto il candidato più vicino dal database con score di similarity coseno $S_c(e_{\text{live}}, e_{\text{ID}})$, ed effettuata la verifica di coerenza sul template protetto tramite \textit{BioHashing} con il seme $K$ associato~\cite{otroshishahrezaBenchmarkingCancelableBiometrics2022}, il sistema applica la regola decisionale rispetto alla soglia calibrata $\tau \in [0{,}30, \, 0{,}50]$ ($RF4$).
+    \item \textbf{Stato $s_3$ \texttt{MATCH / NO\_MATCH}}: se la condizione di vitalità è soddisfatta, il backend esegue il modulo di estrazione e confronto sul fotogramma ottimo $f_{\text{best}}$, calcolando l'embedding $e_{\text{live}} \in \mathbb{R}^{512}$ tramite \textit{\gls{arcface}} e lancia \textbf{una singola query vettoriale $1:N$} su \textit{MongoDB Atlas Vector Search}. %TODO: CORREGGERE BIOHASING
+    Ricevuto il candidato più vicino dal database con score di similarity coseno $S_c(e_{\text{live}}, e_{\text{ID}})$, il livello applicativo ricalcola in modo esatto la similarità coseno $S_c(e_{\text{live}}, e_{\text{ID}})$ (Sezione~\ref{cap:2.4-persistenza}) e applica la regola decisionale rispetto alla soglia calibrata $\tau \in [0{,}30, \, 0{,}50]$ ($RF4$).
     Se $S_c \ge \tau$, l'identità viene confermata (\texttt{MATCH}) restituendo al client i dati dell'utente autenticato; se $S_c < \tau$, l'accesso viene respinto (\texttt{NO\_MATCH}).
     In entrambi i casi, il buffer viene distrutto dalla memoria volatile ($RNF2$) e la sessione WebSocket viene chiusa in modo controllato.
 \end{enumerate}
 La Tabella~\ref{tab:statiFSM} riassume formalmente gli stati della \gls{fsm} progettata, mentre la Figura~\ref{fig:diagrammaSequenza-login} illustra il diagramma di sequenza UML dell'intero ciclo di verifica su WebSocket.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{images/diagrammaSequenza-Login.png}
+
+\begin{figure}[p]
+    \centering %TODO: correggere biohash
+    \includegraphics[angle=90,width=\linewidth]{images/diagrammaSequenza-Login.png}
     \caption{Diagramma di sequenza UML del flusso di autenticazione biometrica in tempo reale su (\texttt{WSS /login}) governato dalla Macchina a Stati Finiti ($\mathcal{M}$)}
     \label{fig:diagrammaSequenza-login}
 \end{figure}
+\clearpage
 
 \begin{table}[H]
     \centering
@@ -338,6 +345,147 @@ Abbattendo in questo modo la complessità delle operazioni più onerose ($T_{\te
 
 %===============================================
 
-\section{Persistenza vettoriale e Stack Tecnologico}\label{cap2.4-persistenza}
-Modello dati MongoDB e ricerca HNSW (\$vectorSearch); Stack backend/frontend e gestione del ciclo di vita
-4pp
+\section{Persistenza vettoriale}\label{cap:2.4-persistenza}
+L'esito di ogni sessione di \textit{live verification} termina, in casi normali, con lo stato $s_3$ (\texttt{MATCH / NO\_MATCH}) che dipende, da un'operazione apparentemente semplice: trovare, tra tutti gli utenti registrati, quello il cui template è più vicino all'embedding appena estratto.
+Al crescere della popolazione, il modo in cui i template vengono memorizzati e interrogati diventa il fattore che decide se il vincolo di latenza $RNF1$ può essere rispettato~\cite{panSurveyVectorDatabase2023}.
+Per questo motivo, la progettazione del \textbf{Livello dei Dati} si è concentrata sulla scelta di un \textit{database vettoriale} in grado di supportare query di similarità su milioni di template in tempo reale, con un \textit{throughput} elevato e una latenza prevedibile.
+
+\subsection{Database vettoriali e ricerca}
+Un sistema di gestione di \textbf{dati vettoriali} riceve una query composta da un vettore e da una funzione di similarità $f : \mathbb{R}^D \times \mathbb{R}^D \to \mathbb{R}$, che associa a una coppia di vettori uno scalare tanto più grande quanto più i due vettori sono simili~\cite{panSurveyVectorDatabase2023}.
+Per il caso della \textit{live verification} 1:N, il vettore in ingresso \textit{(query)} è l'embedding $e_{\text{live}} \in \mathbb{R}^{512}$ e la collezione contiene gli $N$ template registrati $\{e_1, \dots, e_N\}$. 
+Ci sono \textbf{diversi approcci}, ognuno con i propri compromessi tra accuratezza, velocità e complessità computazionale:
+quello più immediato è la \textbf{ricerca esaustiva} (\textit{brute force}), calcola la similarità tra la query e tutti gli elementi della collezione e ne restituisce il massimo, come formalizzato nell'Equazione~\eqref{eq:ricercaEsaustiva}.
+\begin{equation}
+    j^{*} = \arg\max_{j \in \{1,\dots,N\}} f(e_{\text{live}}, e_j)
+    \label{eq:ricercaEsaustiva}
+\end{equation}
+Il costo della \textit{ricerca esaustiva} è $O(N \cdot D)$ dove il fattore $D$ deriva dal costo della funzione di similarità come il \textit{prodotto scalare} o la \textit{similarità coseno}~\cite{panSurveyVectorDatabase2023}. 
+Sebbene tale approccio garantisca il risultato esatto, la sua complessità cresce linearmente con il numero di elementi memorizzati, rendendolo impraticabile su collezioni di grandi dimensioni~\cite{malkovEfficientRobustApproximate2018}. 
+D'altra parte, le soluzioni \textit{esatte} \textbf{\gls{enns}} basate su \textbf{strutture ad albero}, invece, offrono un vantaggio significativo solo su dati a bassa dimensionalità. Infatti a causa della cosiddetta \textbf{maledizione della dimensionalità} (\textit{curse of dimensionality}): con $D = 512$ ci si trova pienamente nel regime in cui tali strutture degradano~\cite{malkovEfficientRobustApproximate2018}.\\
+Per superare questo limite, si ricorre alla ricerca approssimata dei vicini più prossimi: \textbf{\textit{\gls{anns}}}, che accetta un margine minimo di errore, in cambio di tempi di risposta di ordini di grandezza inferiori. 
+L'accuratezza di questo metodo è misurata tramite la \textit{recall}, ovvero il rapporto tra il numero di veri vicini effettivamente restituiti e il numero $K$ di vicini richiesti~\cite{malkovEfficientRobustApproximate2018}. 
+Tra gli approcci di questo tipo, i grafi di prossimità si sono affermati per le migliori prestazioni su dati ad alta dimensionalità~\cite{malkovEfficientRobustApproximate2018}.
+L'algoritmo di riferimento di questa categoria è \textbf{\textit{\gls{hnsw}}} che organizza i dati costruendo in modo incrementale una gerarchia multilivello di grafi su sottoinsiemi annidati degli elementi memorizzati. 
+Per determinare la struttura di questa gerarchia, il livello massimo in cui compare ciascun elemento viene assegnato casualmente secondo una \textit{distribuzione di probabilità a decadimento esponenziale}. 
+Di conseguenza, i livelli superiori contengono pochi nodi collegati da archi lunghi, mentre il livello inferiore raccoglie tutta la collezione, con ogni nodo connesso ai rispettivi vicini più prossimi~\cite{malkovEfficientRobustApproximate2018}. 
+La ricerca di un elemento parte dal livello più alto e scende progressivamente verso il basso, affinando a ogni passaggio il nodo candidato attraverso un \textbf{attraversamento \textit{greedy}}, come illustrato dalla linea rossa in Figura~\ref{fig:hnswMultilivello}.
+Questa separazione su più scale, permette di navigare rapidamente lo spazio vettoriale, con una complessità di ricerca che scala \textbf{in modo logaritmico} rispetto alla cardinalità della collezione~\cite{malkovEfficientRobustApproximate2018}, come nell'Equazione~\eqref{eq:complessitaHNSW}:
+\begin{equation}
+    \mathcal{C}_{\gls{hnsw}} \approx O(\log N)
+    \label{eq:complessitaHNSW}
+\end{equation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/hnsw_multilivello.png}
+    \caption{Struttura gerarchica a tre livelli ($L_2, L_1, L_0$) dell'indice vettoriale \gls{hnsw} e navigazione \textit{greedy} (in rosso) per il vettore di query $e_{\text{live}}$ (stellina). La ricerca inizia dall'\textit{entry point} sul livello superiore $L_2$ e discende progressivamente fino al livello base $L_0$, convergendo verso il vicino più prossimo $e_j^*$}
+    \label{fig:hnswMultilivello}
+\end{figure}
+La combinazione composta da indice di tipo \gls{hnsw}, vettori in virgola mobile a 32 bit \textit{(float)} e similarità coseno rappresenta oggi lo standard dominante dei motori di ricerca vettoriale. Tuttavia, per garantire queste \textbf{prestazioni}, sia il grafo che i vettori a piena precisione devono risiedere interamente nella memoria RAM, comportando un consumo di risorse che cresce linearmente con il numero di elementi indicizzati~\cite{abtahiHNSWInformationTheoreticBinarization2025}. 
+Per mitigare questo impatto, si ricorre spesso a tecniche di compressione come la quantizzazione a pochi bit o la binarizzazione dei vettori, anche se, in questo modo si introduce una perdita di accuratezza all'aumentare del livello di compressione~\cite{abtahiHNSWInformationTheoreticBinarization2025}.
+Nel dominio biometrico questo compromesso assume un peso diverso rispetto alla ricerca semantica: un errore di recupero non produce un risultato \textbf{``meno pertinente``}, ma un potenziale falso rifiuto di un utente legittimo (\gls{frr}). 
+Per tale ragione, e considerata la cardinalità contenuta della popolazione gestita dal prototipo, il sistema adotta i vettori a piena precisione \textbf{senza quantizzazione}.
+
+Ci sono molteplici sistemi di gestione di dati vettoriali, che vengono classificati in due grandi famiglie~\cite{panSurveyVectorDatabase2023}: 
+\begin{itemize}
+    \item i sistemi \textbf{nativi}, progettati esclusivamente attorno alla gestione dei vettori (ad esempio \textit{Milvus} o \textit{Qdrant}). Essi privilegiano tecniche ad alte prestazioni mirate a funzionalità specifiche
+    \item i sistemi \textbf{estesi}, che aggiungono capacità di ricerca vettoriale a un sistema di gestione dati preesistente: relazionale o NoSQL\footnote{\gls{noSQL} indica la categoria di sistemi di gestione di database che non seguono il modello relazionale tradizionale, ovvero basati su tabelle, righe e colonne. I database \gls{noSQL} sono progettati per gestire grandi quantità di dati non strutturati o semi-strutturati per garantire un elevata scalabilità orizzontale~\cite{mongoNoSQL}.} (ad esempio \textit{MongoDB}).
+    Essi privilegiano l'adattabilità a carichi di lavoro diversi, pur non essendo necessariamente i più veloci.
+\end{itemize}
+Per il software in esame, la scelta per il Livello dei Dati è ricaduta sul database di tipo NoSQL \textit{MongoDB Atlas} per i seguenti motivi:
+\begin{itemize}
+    \item \textbf{Sistema unico per dati e vettori}: gli embedding sono memorizzati come campo all'interno dello stesso documento che contiene gli attributi dell'utente, e sono indicizzati e interrogati insieme agli altri dati della collezione~\cite{MongoDBVectorSearch}. Ciò evita l'introduzione di un secondo sistema dedicato ai soli vettori, da mantenere sincronizzato con l'archivio anagrafico, un vantaggio riconosciuto ai sistemi estesi~\cite{panSurveyVectorDatabase2023};
+    \item \textbf{Interrogazioni ibride}: tra i principali ostacoli della gestione vettoriale figura la difficoltà di risolvere in modo efficiente query che combinano attributi e vettori~\cite{panSurveyVectorDatabase2023}. \textit{Atlas Vector Search} consente di pre-filtrare la ricerca su campi indicizzati della collezione, restringendo l'insieme dei vettori candidati al confronto~\cite{MongoDBVectorSearch};
+    \item \textbf{Servizio gestito in cloud}: la piattaforma è offerta come servizio \textit{online} gestito, che si occupa di scalabilità, disponibilità e sicurezza dei dati, riducendo il carico di manutenzione~\cite{MongoDBVectorSearch}.
+\end{itemize}
+Dal punto di vista operativo, la ricerca vettoriale su \textit{MongoDB Atlas} richiede la definizione di un \textbf{indice vettoriale}, distinto dagli indici ordinari del database, indicando il campo contenente gli embedding, il numero di dimensioni (vincolato a valori non superiori a $8192$) e la funzione di similarità~\cite{MongoDBVectorSearch}. 
+Il metodo di indicizzazione predefinito è un \textbf{grafo \gls{hnsw}}, che esegue una ricerca approssimata senza esaminare tutti gli embedding. In alternativa è possibile scegliere un indice piatto (\textit{flat}) che esegue una ricerca esaustiva, garantendo una \textit{recall} del 100\%. 
+Allo stesso modo, in fase di interrogazione è possibile scegliere tra \gls{anns} (ricerca approssimata), e \gls{enns} (ricerca esatta)~\cite{MongoDBVectorSearch}. 
+Le interrogazioni sono espresse come \textit{pipeline} di aggregazione il cui primo stadio è l'operatore \texttt{\$vectorSearch}: il sistema riceve il vettore di query, individua gli embedding più vicini e restituisce i documenti che li contengono, eventualmente elaborati da stadi successivi della \textit{pipeline}~\cite{MongoDBVectorSearch}. 
+Questo significa che l'intera identificazione $1:N$ si risolve in una singola interrogazione al Livello dei Dati, come previsto dallo stato $s_3$ della \gls{fsm} (Capitolo~\ref{cap:2.3-pipeline}).
+
+Infine si è scelto la funzione di similarità dell'indice. 
+Su \textit{Atlas} ne sono disponibili tre, le cui formalizzazioni sono riportate nell'Equazione~\eqref{eq:metricheAtlas}: 
+\begin{itemize}
+    \item \textbf{la distanza euclidea}, che misura la distanza tra le estremità dei vettori;
+    \item \textbf{la similarità coseno}, basata sull'angolo tra i vettori;
+    \item \textbf{il prodotto scalare}, che misura la similarità come il coseno ma tiene conto anche del modulo dei vettori.
+\end{itemize}
+
+\begin{equation}
+    d_{\text{euc}}(a,b) = \lVert a - b \rVert_2, \qquad
+    S_c(a,b) = \frac{a \cdot b}{\lVert a \rVert_2 \, \lVert b \rVert_2}, \qquad
+    S_{\text{dot}}(a,b) = a \cdot b
+    \label{eq:metricheAtlas}
+\end{equation}
+
+Poiché gli embedding prodotti dal modulo di estrazione sono normalizzati sull'ipersfera unitaria ($\lVert e \rVert_2 = 1$), le tre funzioni producono lo stesso ordinamento dei candidati. 
+In questa condizione, infatti, il coseno coincide con il prodotto scalare, mentre il quadrato della distanza euclidea risulta una funzione monotona decrescente del coseno stesso, come mostrato nell'Equazione~\eqref{eq:equivalenzaMetriche}:
+\begin{equation}
+    \lVert a - b \rVert_2^2 = \lVert a \rVert_2^2 + \lVert b \rVert_2^2 - 2\, a \cdot b = 2\,\bigl(1 - S_c(a,b)\bigr)
+    \label{eq:equivalenzaMetriche}
+\end{equation}
+Il sistema, quindi adotta la \textbf{similarità coseno}, che è la stessa funzione impiegata dalla regola decisionale definita nel Capitolo~\ref{cap:1-fondamenti} ed è robusta anche rispetto a eventuali vettori non perfettamente normalizzati. Tuttavia \textit{MongoDB Atlas} non restituisce il risultato grezzo del coseno, ma un punteggio riscalato nell'intervallo $[0,1]$ come mostrato nell'Equazione~\eqref{eq:scoreAtlas}~\cite{MongoDBVectorSearch}:
+\begin{equation}
+    \text{score}_{\text{Atlas}}(a,b) = \frac{1 + S_c(a,b)}{2}
+    \label{eq:scoreAtlas}
+\end{equation}
+Per non confondere i due domini numerici e mantenere la soglia $\tau$ espressa sulla scala del coseno, l'indice viene impiegato soltanto come stadio di \textbf{recupero del candidato}, mentre la decisione finale è affidata al livello applicativo, che ricalcola in modo esatto la similarità coseno tra l'embedding \textit{live} e il template restituito. Questa separazione rende inoltre la decisione indipendente dall'approssimazione introdotta dall'indice \gls{hnsw}.
+
+\subsection{Modello dei dati}\label{cap:2.4.2-modelloDati}
+Ogni utente registrato corrisponde a un singolo documento della collezione, riportato in Tabella~\ref{tab:modelloUser}. 
+Il documento contiene esclusivamente le informazioni strettamente necessarie alla verifica, ossia il nominativo, il template biometrico e il \textit{timestamp} di creazione.
+Infatti, in rispetto del requisito $RNF2$ e dei principi di protezione dei dati descritti nel capitolo~\ref{cap:1.4-normative}, non viene memorizzata alcuna immagine del documento né del volto nel database.
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    %\begin{tabular}{c c c c}
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} >{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{6.6cm} @{}}
+        \hline
+        \textbf{Attributo} & \textbf{Tipo logico} & \textbf{Ruolo e vincoli} \\
+        \hline
+        Nominativo \textit{(fullName)}& Stringa a lunghezza limitata & Unico dato anagrafico inserito e leggibile dell'utente. \\
+        %\hline
+        Template biometrico \textit{(embedding)} & Vettore a 512 componenti & Embedding indicizzato dall'indice vettoriale. In seguito sostituito da template protetto da \textit{BioHashing}. \\
+        %\hline
+        Punteggio di qualità \textit{(score)}& Reale & Confidenza della rilevazione in fase di \textit{enrollment}. \\
+        %\hline
+        Data di creazione \textit{(createdAt)}& \textit{Timestamp} UTC & Tracciabilità dell'operazione di registrazione. \\
+        \hline
+    %\end{tabular}
+    \end{tabular*}
+    \caption{Modello logico dell'entità \texttt{User} persistita nel Livello dei Dati.}
+    \label{tab:modelloUser}
+\end{table}
+\noindent Nella versione attuale del prototipo, tuttavia, il template è conservato come embedding \textbf{a piena precisione}, e non nella forma protetta tramite \textit{BioHashing}. 
+Come descritto approfonditamente nel Capitolo~\ref{cap:1.4-normative}, questo schema applica all'embedding una proiezione ortogonale generata a partire da un seme $K_j$ specifico del singolo utente, binarizza il risultato e confronta i template tramite distanza di Hamming~\cite{otroshishahrezaBenchmarkingCancelableBiometrics2022}. 
+Un template protetto con il seme $K_j$ dell'utente $j$ è \textbf{confrontabile} solo con una query trasformata \textbf{con lo stesso seme}. 
+E visto che ogni template registrato sarebbe proiettato in uno spazio geometrico distinto, determinato dal rispettivo seme $K_j$, i vettori memorizzati, in tal caso, non sarebbero direttamente confrontabili tra loro e non possono essere organizzati in un unico grafo \gls{hnsw}. 
+Quindi un'interrogazione $1:N$ dovrebbe ripetere la trasformazione della query per ciascuno degli $N$ semi, ricadendo nella ricerca esaustiva (\gls{enns}) dell'Equazione~\eqref{eq:ricercaEsaustiva}, \textbf{annullando} il beneficio dell'indice \gls{hnsw}~\cite{osorio-roigPrivacypreservingMultibiometricIndexing2023, MongoDBVectorSearch}.
+La dipendenza da una chiave individuale (seed $K_j$) di ogni utente rende il \textit{BioHashing} \textbf{strutturalmente incompatibile} con un'indicizzazione vettoriale $1:N$\footnote{Va osservato che anche il controllo di unicità in fase di \textit{enrollment} ($RF5$), realizzato con una query $1:N$ sugli embedding in chiaro, non sarebbe più eseguibile sui template protetti e andrebbe ripensato.}.
+Come evidenziato in letteratura, gli schemi tradizionali di protezione dei template risultano infatti \textbf{inadeguati} per i meccanismi standard di indicizzazione e costringono a scansioni lineari dell'intera base dati~\cite{osorio-roigPrivacypreservingMultibiometricIndexing2023}. 
+A questo limite algoritmico si aggiunge infine un vincolo tecnologico della piattaforma adottata: \textit{MongoDB Atlas} non include la distanza di Hamming tra le metriche di similarità supportate.
+Ne deriva un \textbf{compromesso} esplicito tra la \textbf{scalabilità} dell'identificazione $1:N$ su indice vettoriale e \textbf{protezione} del template, che il progetto risolve in due fasi. 
+\begin{itemize}
+    \item Nella fase attuale del software, l'embedding è protetto dalle misure perimetrali del servizio e dalla minimizzazione del contenuto del documento, nella consapevolezza che il sistema resta \textbf{esposto al rischio} di \textit{template inversion} associato al livello $L3$ della tassonomia introdotta nel Capitolo~\ref{cap:1.4-normative};
+    \item Una prima evoluzione architetturale consiste nell'integrazione del \textit{BioHashing} accompagnata dal passaggio a una verifica $1:1$ basata su dichiarazione di identità (\textit{claim}).~\begin{enumerate}
+        \item L'utente dichiara chi afferma di essere (ad esempio tramite email e/o password oppure completando un primo passaggio di autenticazione in uno schema a due fattori)
+        \item Il sistema riesce a recuperare il solo documento corrispondente con il relativo seme $K_j$ e trasformare la \textit{query}
+        \item Esegue quindi il confronto diretto tra template protetti
+        \end{enumerate} 
+        Il sistema, in questo modo, soddisferebbe i requisiti di \textbf{rinnovabilità}, per cui un template compromesso può essere revocato e rigenerato con un nuovo seme, e di \textbf{non collegabilità}, impedendo di stabilire se due template protetti provengano dallo stesso soggetto~\cite{otroshishahrezaBenchmarkingCancelableBiometrics2022}. 
+        \item In alternativa, qualora si volesse preservare l'identificazione $1:N$ senza dichiarazione preventiva, sarebbe necessario abbandonare gli indici vettoriali standard in favore di tecniche dedicate di riduzione del carico computazionale (\textit{workload reduction}) su template cancellabili, quali il raggruppamento (\textit{binning}) basato su pattern binari frequenti~\cite{osorio-roigPrivacypreservingMultibiometricIndexing2023}.
+\end{itemize}
+
+La coerenza dei dati tra i tre livelli è garantita dai contratti di interfaccia basati sul pattern \gls{dto}, introdotto nel Capitolo~\ref{cap:2.2-architettura}.
+A livello progettuale si distinguono tre famiglie di contratti: 
+\begin{itemize}
+    \item il contratto dell'\textbf{entità persistita}, che vincola il formato del documento utente e in particolare la dimensionalità del vettore, impedendo che nel livello dati entrino elementi incompatibili con la ricerca;
+    \item il contratto di \textbf{esito della verifica}, che descrive il risultato del confronto (esito, eventuale utente riconosciuto, valore di similarità e punteggio dell'indice);
+    \item il contratto di \textbf{risposta all'\textit{enrollment}}, che comunica al client l'esito della registrazione e le correzioni geometriche e fotometriche applicate al documento.
+\end{itemize}
+La validazione avviene a ogni confine del sistema: un payload non conforme viene \textbf{rifiutato} prima di raggiungere la logica biometrica o il database.
+Gli schemi di risposta, inoltre, non espongono mai al client il template memorizzato, riducendo la superficie di esposizione al livello $L6$ della tassonomia del Capitolo~\ref{cap:1.4-normative}.
+
+% Modello dati MongoDB e ricerca HNSW (\$vectorSearch); Stack backend/frontend e gestione del ciclo di vita
+% 4pp
