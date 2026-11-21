@@ -13,7 +13,7 @@ Un  sistema di riconoscimento facciale \textit{\gls{frs}} è modellato formalmen
 Con questa pipeline i dati sensoriali grezzi, raccolti dal sensore ottico (fotocamera o scansione documentale), vengono progressivamente trasformati in una \textbf{rappresentazione vettoriale} compatta a supporto del processo di verifica~\cite{sanzGoverningPrivacyPreservingFace2026}.
 % possibile figura degli stadi, presa da sanz
 Superato lo stadio di acquisizione ottica, il modulo di \textit{pre-processing} assolve il compito critico di isolare la regione facciale \textit{face detection} normalizzare la geometria spaziale del volto \textit{face alignment}. 
-È utile per abbattere le variabilità introdotte dalla posa e dalla distanza del soggetto, riducendo le distorsioni prospettiche e le variazioni di illuminazione, e migliorando il contrasto locale dell'immagine tramite algoritmi di equalizzazione come \textit{\gls{clahe}}~\cite{georgeEdgeFaceEfficientFace2024}.
+È utile per abbattere le variabilità introdotte dalla posa e dalla distanza del soggetto, riducendo le distorsioni prospettiche e le variazioni di illuminazione, e migliorando il contrasto locale dell'immagine tramite algoritmi di equalizzazione come \textit{\gls{clahe}}~\cite{rezaRealizationContrastLimited2004}.
 I rilevatori di prima generazione si limitavano a restituire un \textit{bounding box} rettangolare, mentre i rilevatori più moderni multi-livello (come \textit{MTCNN} o \textit{RetinaFace}) restituiscono anche i 5 \textbf{keypoint biometrici} \textit{(face landmarking)} rigidi del volto $\left\{x_k, y_k\right\}_{k=1}^{5}$:
 \begin{itemize}
     \item il centro dell'occhio sinistro
@@ -33,7 +33,7 @@ Nella progettazione è necessario un attento bilanciamento tra tre fattori princ
     \item \textbf{Occupazione di memoria:} il numero di parametri (in milioni) e lo spazio occupato su disco (in Megabyte);
     \item \textbf{Complessità computazionale:} il costo di esecuzione, misurato in operazioni in virgola mobile (MFLOPs o GFLOPs).
 \end{itemize}
-Le architetture convoluzionali profonde basate su blocchi residuali, come \textit{ResNet-50} e \textit{ResNet-100}~\cite{kimAdaFaceQualityAdaptive2023} (quest'ultima adottata nel modello ad alta accuratezza \texttt{buffalo\_l} della libreria \textit{InsightFace}), garantiscono prestazioni sui benchmark più complessi. 
+Le architetture convoluzionali profonde basate su blocchi residuali, come \textit{ResNet-100} e \textit{ResNet-50}~\cite{kimAdaFaceQualityAdaptive2023,github-insightface} (quest'ultima adottata nel modello ad alta accuratezza \texttt{buffalo\_l} della libreria \textit{InsightFace}), garantiscono prestazioni sui benchmark più complessi. 
 Tuttavia, richiedono fino a $65{,}2$ milioni di parametri, $24{,}2~\text{GFLOPs}$ per singola inferenza e oltre $260~\text{MB}$ di memoria, risultando troppo pesanti per dispositivi \textit{edge} o mobile privi di accelerazione GPU dedicata~\cite{hassanpourLightweightFaceRecognition2023}.
 Al contrario, le architetture più leggere come \textit{MobileFaceNet} (adottate nel modello \texttt{buffalo\_s} della libreria \textit{InsightFace}) sono pensate per ambienti a risorse limitate. Esse, infatti, riducono drasticamente il numero di parametri ($\sim 1{-}2~\text{milioni}$), il costo computazionale ($\sim 0{,}5~\text{GFLOPs}$) e lo spazio su disco ($\sim 4{,}5~\text{MB}$), a fronte, tuttavia di una maggiore sensibilità quando applicati a ritratti documentali fortemente degradati~\cite{sawetsutipunFacialImageVerification2020a}.
 
@@ -45,7 +45,7 @@ Al contrario, le architetture più leggere come \textit{MobileFaceNet} (adottate
         \textbf{Modello (Backbone)}  & \textbf{Parametri} & \textbf{Complessità} & \textbf{Peso} & \textbf{LFW}\footnotemark& \textbf{CA-LFW}\footnotemark\\
          & \textbf{[milioni]} & \textbf{[MFLOPs]} & \textbf{[MB]} & \textbf{[\%]} & \textbf{[\%]} \\
         \hline
-        ResNet-100 (\texttt{buffalo\_l}) & 65,20 & 24\,211,8 & 261,22 & 99,82 & 95,45 \\
+        ResNet-100 (\acrshort{arcface}) & 65,20 & 24\,211,8 & 261,22 & 99,82 & 95,45 \\
         %\hline
         VarGFaceNet & 5,00 & 1\,022,0 & 20,00 & 99,85 & 95,15 \\
         %\hline
@@ -119,7 +119,7 @@ Nella figura~\ref{fig:distribuzioni_far_frr} sono mostrate le distribuzioni di F
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\linewidth]{images/impostore-genuino-frr-far.png}
-    \caption{Distribuzione dei punteggi di \textit{Cosine Similarity} ($S_c$) per confronti tra la stessa persona (genuini) e persone diverse (impostori).L'intersezione tra le due curve individua il punto di \gls{err}.}\label{fig:distribuzioni_far_frr}
+    \caption[Distribuzione dei punteggi di \textit{Cosine Similarity} per confronti tra stesse persone e impostori]{Distribuzione dei punteggi di \textit{Cosine Similarity} ($S_c$) per confronti tra la stessa persona (genuini) e persone diverse (impostori). L'intersezione tra le due curve individua il punto di \gls{err}.}\label{fig:distribuzioni_far_frr}
 \end{figure}
 
 %===============================================
@@ -217,7 +217,7 @@ In letteratura, la modellazione delle minacce (\textit{threat modeling}) lungo g
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{images/pipeline-stadiL1-L6.png}
-    \caption{Architettura a cinque stadi della pipeline di riconoscimento facciale e mappatura dei sei livelli di esposizione dei dati sensibili ($L1\text{--}L6$) lungo i diversi domini operativi}\label{fig:pipelineStadi-L1-L6}
+    \caption[Architettura della pipeline di riconoscimento facciale e mappatura dei livelli di esposizione dei dati sensibili]{Architettura a cinque stadi della pipeline di riconoscimento facciale e mappatura dei sei livelli di esposizione dei dati sensibili ($L1\text{--}L6$) lungo i diversi domini operativi}\label{fig:pipelineStadi-L1-L6}
 \end{figure}
 I moduli \textit{\gls{pad}} presidiano l'integrità fisica a monte del sensore ottico, invece i livelli $L1-L6$ risultano particolarmente critici rispetto agli \textbf{attacchi di iniezione digitale} (\textit{digital injection attacks}) e alle \textbf{minacce di compromissione dei dati biometrici}~\cite{groupBiometricLivenessPresentation}.
 In uno scenario di iniezione, l'attaccante aggira completamente la fotocamera fisica iniettando nel flusso di cattura un video pre-registrato, manipolato o generato sinteticamente (\textit{deepfake}) mediante l'uso di driver di fotocamere virtuali (\textit{virtual cameras}), emulatori software o la manomissione del payload trasmesso verso il server~\cite{groupBiometricLivenessPresentation}.
