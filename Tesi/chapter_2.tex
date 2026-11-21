@@ -380,7 +380,7 @@ Questa separazione su più scale, permette di navigare rapidamente lo spazio vet
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\linewidth]{images/hnsw_multilivello.png}
-    \caption[Struttura gerarchica a tre livelli dell'indice vettoriale \acrshort{label}{hnsw}]{Struttura gerarchica a tre livelli ($L_2, L_1, L_0$) dell'indice vettoriale \gls{hnsw} e navigazione \textit{greedy} (in rosso) per il vettore di query $e_{\text{live}}$ (stellina). La ricerca inizia dall'\textit{entry point} sul livello superiore $L_2$ e discende progressivamente fino al livello base $L_0$, convergendo verso il vicino più prossimo $e_j^*$}
+    \caption[Struttura gerarchica a tre livelli dell'indice vettoriale \acrshort{hnsw}]{Struttura gerarchica a tre livelli ($L_2, L_1, L_0$) dell'indice vettoriale \gls{hnsw} e navigazione \textit{greedy} (in rosso) per il vettore di query $e_{\text{live}}$ (stellina). La ricerca inizia dall'\textit{entry point} sul livello superiore $L_2$ e discende progressivamente fino al livello base $L_0$, convergendo verso il vicino più prossimo $e_j^*$}
     \label{fig:hnswMultilivello}
 \end{figure}
 La combinazione composta da indice di tipo \gls{hnsw}, vettori in virgola mobile a 32 bit \textit{(float)} e similarità coseno rappresenta oggi lo standard dominante dei motori di ricerca vettoriale. Tuttavia, per garantire queste \textbf{prestazioni}, sia il grafo che i vettori a piena precisione devono risiedere interamente nella memoria RAM, comportando un consumo di risorse che cresce linearmente con il numero di elementi indicizzati~\cite{abtahiHNSWInformationTheoreticBinarization2025}. 
