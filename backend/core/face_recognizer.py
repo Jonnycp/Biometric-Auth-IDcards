@@ -30,3 +30,12 @@ def verifyIdentity(embedding1: np.ndarray, embedding2: np.ndarray, threshold=0.4
         "isMatch": similarity >= threshold,
         "threshold": float(threshold)
     }
+
+
+# Calcola l'embedding di un volto gia' rilevato (allineamento 112x112 + ResNet-50).
+# Chiamata una sola volta per sessione, sul fotogramma migliore del buffer.
+def computeEmbedding(detector, image: np.ndarray, face):
+    if face is None or getattr(face, "kps", None) is None:
+        return None, 0.0
+    detector.models["recognition"].get(image, face)
+    return extractEmbeddings(face)

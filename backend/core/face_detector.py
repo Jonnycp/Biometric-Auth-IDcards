@@ -1,4 +1,5 @@
 from insightface.app import FaceAnalysis
+from insightface.app.common import Face
 import numpy as np
 
 # Inizializza FaceRecognition (ctx_id = -1 -> CPU)
@@ -57,3 +58,19 @@ def pipelineFaceDetection(detector: FaceAnalysis, image: np.ndarray):
     
     croppedImgFace = cropFace(image, mainFace.bbox) 
     return mainFace, croppedImgFace
+
+# Solo rilevamento (SCRFD): bbox, 5 keypoint e det_score, senza calcolare l'embedding.
+# Usata nel buffer di liveness, dove l'embedding servirebbe solo per il frame migliore.
+def detectMainFace(detector: FaceAnalysis, image: np.ndarray):
+    if image is None or image.size == 0:
+        return None
+    bboxes, kpss = detector.det_model.detect(image, max_num=0, metric="default")
+    if bboxes.shape[0] == 0:
+        return None
+    faces = [
+        Face(bbox=bboxes[i, 0:4],
+             kps=kpss[i] if kpss is not None else None,
+             det_score=bboxes[i, 4])
+        for i in range(bboxes.shape[0])
+    ]
+    return getMainFace(faces)

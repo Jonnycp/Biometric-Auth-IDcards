@@ -5,11 +5,12 @@ import io
 import os
 
 from backend.core.id_card import decodeImage
-from backend.core.face_detector import pipelineFaceDetection
-from backend.core.face_recognizer import extractEmbeddings
+from backend.core.face_detector import detectMainFace
+from backend.core.face_recognizer import computeEmbedding
 from backend.core.liveness import checkLiveness
 from backend.api.register import MAX_FILE_SIZE, ALLOWED_FORMATS
 from backend.database.user_controller import searchUser_byEmbedding
+from backend.database.models.user import UserPublic
 
 load_dotenv()
 LIVENESS_THRESHOLD = float(os.getenv("LIVENESS_THRESHOLD", 0.6))
@@ -26,7 +27,8 @@ async def ws_loginUser(websocket: WebSocket):
 
     #PARAMETRI LIVENESS
     liveness_scores = []
-    best_embedding = None
+    best_frame = None   # fotogramma migliore f_best (solo in RAM)
+    best_face = None    # volto rilevato su f_best (bbox + 5 keypoint)
     best_score = -1.0
     spoof_attack_detected_count = 0
 
@@ -45,12 +47,12 @@ async def ws_loginUser(websocket: WebSocket):
                 await websocket.send_json({"status": "ERROR", "message": "Fotogramma non valido."})
                 continue
 
-            # 3. Face detection
-            face, cropped_face = pipelineFaceDetection(recognizer, image)
-            embedding, score = extractEmbeddings(face)
-            if embedding is None or face is None:
+            # 3. Face detection (solo rilevamento: l'embedding si calcola una volta, su f_best)
+            face = detectMainFace(recognizer, image)
+            if face is None:
                 liveness_scores.clear()
-                best_embedding = None
+                best_frame = None
+                best_face = None
                 best_score = -1.0
                 spoof_attack_detected_count = 0
                 
@@ -60,11 +62,13 @@ async def ws_loginUser(websocket: WebSocket):
             # 4. Liveness check
             liveness_result = checkLiveness(liveness_session, image, face.bbox, LIVENESS_THRESHOLD)
 
-            # 4.1 Aggiorna punteggi liveness e embedding migliore
+            # 4.1 Aggiorna punteggi liveness e fotogramma migliore
             liveness_scores.append(liveness_result["score"])
+            score = float(face.det_score)
             if score > best_score:
                 best_score = score
-                best_embedding = embedding
+                best_frame = image
+                best_face = face
             progress = int((len(liveness_scores) / FRAMES_LIVENESS) * 100)
 
             if not liveness_result["is_live"]:
@@ -82,7 +86,8 @@ async def ws_loginUser(websocket: WebSocket):
                                                "liveness_progress": progress
                                                })
                     liveness_scores.clear()
-                    best_embedding = None
+                    best_frame = None
+                    best_face = None
                     best_score = -1.0
                     spoof_attack_detected_count = 0
                     continue
@@ -107,12 +112,17 @@ async def ws_loginUser(websocket: WebSocket):
                                                "liveness_threshold": liveness_result["treshold"],
                                                "liveness_progress": progress
                                                })
-                    best_embedding = None
+                    best_frame = None
+                    best_face = None
                     best_score = -1.0
                     continue
                 
-                # 5. Cerca in db
+                # 5. Embedding sul solo fotogramma migliore, poi ricerca in db
+                best_embedding, _ = computeEmbedding(recognizer, best_frame, best_face)
+                best_frame = None
+                best_face = None
                 if best_embedding is None:
+                    best_score = -1.0
                     await websocket.send_json({"status": "ERROR", "message": "Nessun embedding valido trovato."})
                     continue
 
@@ -128,8 +138,9 @@ async def ws_loginUser(websocket: WebSocket):
                     "liveness_threshold": liveness_result["treshold"],
                     "similarity_threshold": SIMILARITY_THRESHOLD,
                     "vector_score": round(user_result.vectorScore, 3) if user_result.vectorScore is not None else 0.0,
-                    "embedding_score": round(score, 3),
-                    "user": user_result.user.model_dump(mode="json") if user_result.user and (user_result.similarity >= SIMILARITY_THRESHOLD-0.10) else None,
+                    "embedding_score": round(best_score, 3),
+                    # Dati utente solo in caso di MATCH e senza embedding
+                    "user": UserPublic.fromUser(user_result.user).model_dump(mode="json") if user_result.isMatch and user_result.user else None,
                 }
                 await websocket.send_json(payload)
                 break #termina la connessione

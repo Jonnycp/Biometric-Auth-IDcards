@@ -7,6 +7,16 @@ class User(BaseModel):
     embedding: list[float] = Field(..., description="Vettore embedding")
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class UserPublic(BaseModel):
+    """Dati dell'utente restituiti al client: l'embedding non lascia mai il server."""
+    fullName: str
+    score: float
+    createdAt: datetime
+
+    @classmethod
+    def fromUser(cls, user: "User") -> "UserPublic":
+        return cls(**user.model_dump(exclude={"embedding"}))
+
 class UserResult(BaseModel):
     isMatch: bool
     user: User | None = None
@@ -15,7 +25,7 @@ class UserResult(BaseModel):
 
 class UserResponse(BaseModel):
     message: str
-    user: User | None = None
+    user: UserPublic | None = None
     score: float = 0.0
     fixProspective: bool = False
     fixContrast: bool = False

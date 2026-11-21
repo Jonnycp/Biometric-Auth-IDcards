@@ -44,4 +44,7 @@ export function getWsLoginUrl(): string {
 
 export const API_BASE_URL = getApiBaseUrl();
 export const WS_LOGIN_URL = getWsLoginUrl();
-export const TOTAL_LIVENESS_FRAMES = 45;
+// Intervallo minimo tra due fotogrammi (40 ms = massimo 25 fps).
+// Il ritmo reale è limitato dal controllo di flusso: un nuovo frame parte solo
+// dopo la risposta del server al precedente.
+export const FRAME_INTERVAL_MS = 40;
