@@ -96,7 +96,7 @@ Nelle tabelle~\ref{tab:requisitiFunzionali} e~\ref{tab:requisitiNonFunzionali} s
         \hline
         RNF4 & Protezione da Spoofing (Sicurezza) & Il sistema deve bloccare sessioni con score medio di vitalità inferiore a $\tau_{\text{liveness}}$ o caratterizzate da staticità innaturale dei landmark facciali & \textit{Must} \\
         \hline
-        RNF5 & Sicurezza del Canale di Trasmissione & Tutte le comunicazioni client-server (API REST e flussi streaming) devono avvenire esclusivamente su canali cifrati tramite protocolli HTTPS/TLS e \gls{wss} & \textit{Must} \\
+        RNF5 & Sicurezza del Canale di Trasmissione & Tutte le comunicazioni client-server (API \acrshort{rest} e flussi streaming) devono avvenire esclusivamente su canali cifrati tramite protocolli HTTPS/TLS e \gls{wss} & \textit{Must} \\
         \hline
     %\end{tabular}
     \end{tabular*}
@@ -119,7 +119,7 @@ In letteratura, gli \gls{frs} remoti per la verifica dell'identità si dividono 
 \end{itemize}
 Nei moderni scenari di \textit{remote customer onboarding} basati sul confronto tra documento d'identità e acquisizione \textit{live}, l'adozione di un'architettura Client-Server disaccoppiata, di tipo \textbf{\textit{server-centric}}, risulta una scelta obbligata sotto il profilo sia della sicurezza, sia dell'accuratezza biometrica~\cite{sawetsutipunFacialImageVerification2020a}. 
 Infatti dal punto di vista della sicurezza, il dispositivo dell'utente rappresenta intrinsecamente un \textbf{ambiente non fidato} \textit{untrusted}, in quanto sotto il pieno controllo fisico e software di un potenziale attaccante. Delegare al browser o al client la logica decisionale di \gls{pad} o il calcolo della soglia di matching esporrebbe il sistema a \textbf{manomissioni del codice} e al bypass locale dei controlli~\cite{groupBiometricLivenessPresentation}. 
-Dal punto di vista algoritmico, inoltre, l'estrazione di un embedding affidabile da una fototessera stampata su \gls{cie} richiede reti profonde alta capacità discriminativa come \textit{ResNet-100} (\texttt{buffalo\_l}), dal peso di oltre $260\sim~\text{MB}$, che sono poco praticabili da scaricare ed eseguire con fluidità all'interno di un browser mobile. 
+Dal punto di vista algoritmico, inoltre, l'estrazione di un embedding affidabile da una fototessera stampata su \gls{cie} richiede reti profonde alta capacità discriminativa come \textit{ResNet-50} (\texttt{buffalo\_l}), dal peso di oltre $360\sim~\text{MB}$, che sono poco praticabili da scaricare ed eseguire con fluidità all'interno di un browser mobile. 
 Sui quei dispositivi sono più adatti modelli leggeri come \textit{MobileFaceNet} (\texttt{buffalo\_s}) di $\sim 4{,}5~\text{MB}$, nonostante il loro calo di accuratezza su immagini degradate, come già discusso nel Capitolo~\ref{cap:1.1-fondamenti} e nella Tabella~\ref{tab:confrontoBackboneFR}.
 % TODO Al contrario, le architetture di tipo \textit{centralized backend} presentano un carico computazionale e di \textbf{rete eccessivo} sul server centrale, che deve gestire l'intera pipeline per tutti gli utenti concorrenti, aumentando il rischio di colli di bottiglia e degrado delle prestazioni.
 
@@ -190,8 +190,10 @@ Definita l'infrastrutura Client-Server e i protocolli di trasporto, la progettaz
 Il flusso di \textit{enrollment}, innescato dalla chiamata sincrona \texttt{POST /register}, ha l'obiettivo di acquisire il lato anteriore di un documento conforme allo standard ICAO 9303 formato TD1 (come la \gls{cie} o la patente di guida italiana), normalizzarne le proprietà geometriche e prospettiche ed estrarre un template di riferimento univoco~\cite{icao9303,kelesRepublicTurkeyIdentity2020}. 
 Alla chiamata dell'\textit{endpoint}, nel rispetto del vincolo $RNF2$, lo stream binario ricevuto nel payload \texttt{multipart/form-data} viene decodificato direttamente in memoria volatile (RAM) come matrice numerica multibanda e attraversa i moduli descritti nel Capitolo~\ref{cap:2.2-architettura}. In particolare nel modulo di \textbf{rettifica documentale} l'immagine viene sottoposta a una serie di operazioni, per correggere le inevitabili rotazioni e distorsioni prospettiche, essendo acquisita a mano libera dall'utente in condizioni non vincolate:
 \begin{enumerate}
-    \item \textbf{Conversione in scala di grigi e applicazione di un filtro di \textit{Gaussian Blur}} per ridurre il rumore e le texture non uniformi. Permette di individuare meglio i gradienti dei bordi mediante l'algoritmo di \textit{Canny Edge Detection};
-    \item \textbf{Analisi topologica dei contorni e approssimazione poligonale} tramite algoritmo di \textit{Douglas-Peucker}: si isola il quadrilatero di area massima corrispondente ai quattro vertici fisici della tessera sfruttando le dimensioni fisiche nominali del formato ID-1 / ICAO TD1 ($85{,}6 \times 54{,}0~\text{mm}$), caratterizzato da un \textit{aspect ratio} di $85{,}6/54{,}0 \approx 1{,}58$~\cite{icao9303};
+    \item \textbf{Conversione in scala di grigi, e rilevamento dei bordi}: l'immagine viene ridotta di risoluzione e filtrata con un filtro \textit{bilaterale}, che attenua le texture dello sfondo preservando i bordi netti della tessera~\cite{tomasiBilateralFilteringGray1998} oppure in alternativa con un filtro \textit{Gaussian Blur}. 
+    I bordi vengono quindi estratti con l'algoritmo di \textit{Canny Edge Detection} e le loro piccole interruzioni chiuse con un'operazione morfologica;
+    \item \textbf{Analisi topologica dei contorni, approssimazione poligonale e validazione geometrica}: per i contorni più estesi si calcola l'inviluppo convesso, che viene approssimato con l'algoritmo di \textit{Douglas-Peucker} fino a ottenere un quadrilatero. 
+    Il contorno è accettato solo se la sua forma è compatibile con il formato ID-1 / ICAO TD1 ($85{,}6 \times 54{,}0~\text{mm}$), caratterizzato da un \textit{aspect ratio} di $85{,}6/54{,}0 \approx 1{,}58$~\cite{icao9303}, entro una tolleranza che tiene conto della distorsione prospettica. In assenza di un candidato valido l'immagine prosegue senza rettifica;
     \item \textbf{Calcolo della matrice di omografia planarizzata} $H$ che mappa i vertici rilevati ai vertici di un rettangolo standard $856 \times 540$ pixel e applicazione della trasformazione prospettica (\textit{warp perspective}) per ottenere un'immagine rettificata e allineata;
     \item \textbf{Equalizzazione adattiva del contrasto (\gls{clahe})} per mitigare la compressione tonale, i riflessi olografici sul policarbonato e la bassa risoluzione della fototessera stampata. In particolare, l'algoritmo \gls{clahe} viene applicato solo sul canale di luminanza $L$: 
     \begin{itemize}
@@ -206,7 +208,7 @@ L'immagine rettificata e migliorata, viene quindi passata al modulo di \textbf{r
     \item \textbf{Estrazione del volto più grande} valutando l'area del \textit{bounding box}
     \item \textbf{Allineamento geometrico} mediante trasformazione affine, normalizzando la dimensione a $112 \times 112$ pixel;
 \end{enumerate}
-Successivamente, il volto con i keypoint allineati viene passato al modulo di \textbf{estrazione e confronto}, che con la rete \textit{ResNet-100} (\texttt{buffalo\_l}) processa il tensore $112 \times 112 \times 3$ e genera un embedding $e \in \mathbb{R}^{512}$ normalizzato ($\lVert e \rVert_2 = 1$) come specificato nel Capitolo~\ref{cap:1-fondamenti}~\cite{dengArcFaceAdditiveAngular2022}.
+Successivamente, il volto con i keypoint allineati viene passato al modulo di \textbf{estrazione e confronto}, che con la rete \textit{ResNet-50} (\texttt{buffalo\_l}) processa il tensore $112 \times 112 \times 3$ e genera un embedding $e \in \mathbb{R}^{512}$ normalizzato ($\lVert e \rVert_2 = 1$) come specificato nel Capitolo~\ref{cap:1-fondamenti}~\cite{dengArcFaceAdditiveAngular2022}.
 Prima di procedere alla registrazione, per soddisfare il requisito di unicità ($RF5$) conforme alle specifiche di \textit{identification} ICAO 9303~\cite{icao9303}, il backend esegue una query vettoriale $1:N$ sull'indice \textit{MongoDB Atlas Vector Search} confrontando $e_{\text{ID}}$ con tutti i template già registrati nel database attraverso la \textit{Cosine Similarity}.
 Qualora il punteggio massimo di \textit{similarità coseno} superi la soglia decisionale, ovvero $\max_{j} S_c(e_{\text{ID}}, e_j) \ge \tau$, la transazione viene interrotta restituendo un errore semantico \texttt{HTTP 409 Conflict} al client, notificando che il soggetto biometrico è già registrato. 
 In caso contrario, il vettore $e_{\text{ID}}$ viene indicizzato nel database come template di riferimento, insieme al nominativo dell'utente e al \textit{timestamp} di creazione. 
@@ -266,7 +268,7 @@ Il funzionamento algoritmico della pipeline di autenticazione si sviluppa attrav
         \label{eq:criterioLivenessBuffer}
         \bar{L} = \frac{1}{N} \sum_{t=1}^{N} l_t \ge \tau_{\text{liveness}} \quad \land \quad \sigma_{\text{kps}}^2 \in [\sigma_{\min}^2, \, \sigma_{\max}^2]
     \end{equation}
-    dove $\bar{L}$ è la media aritmetica degli score passivi (con soglia $\tau_{\text{liveness}} = 0{,}50$) e $[\sigma_{\min}^2, \, \sigma_{\max}^2]$ delimita l'intervallo di micro-movimento fisiologico dei \textit{landmark} (escludendo sia la rigidità assoluta di una foto fissa sia movimenti bruschi che causano \textit{motion blur});
+    dove $\bar{L}$ è la media aritmetica degli score passivi (con soglia $\tau_{\text{liveness}} = 0{,}60$) e $[\sigma_{\min}^2, \, \sigma_{\max}^2]$ delimita l'intervallo di micro-movimento fisiologico dei \textit{landmark} (escludendo sia la rigidità assoluta di una foto fissa sia movimenti bruschi che causano \textit{motion blur});
 
     \item \textbf{Stato $s_2$ \texttt{SPOOF\_ATTACK}}: si finisce in questo stato se al termine della valutazione del buffer (o anticipatamente in presenza di $M$ frame fortemente negativi), risulta $\bar{L} < \tau_{\text{liveness}}$ oppure $\sigma_{\text{kps}}^2 < \sigma_{\min}^2$. Il server blocca l'esecuzione del modulo di riconoscimento facciale, notifica al frontend il tentativo di \textit{spoofing} e dealloca il buffer dalla RAM;
 
@@ -280,7 +282,7 @@ La Tabella~\ref{tab:statiFSM} riassume formalmente gli stati della \gls{fsm} pro
 \begin{figure}[p]
     \centering
     \includegraphics[angle=90,width=\linewidth]{images/diagrammaSequenza-Login.png}
-    \caption{Diagramma di sequenza UML del flusso di autenticazione biometrica in tempo reale su (\texttt{WSS /login}) governato dalla Macchina a Stati Finiti ($\mathcal{M}$)}
+    \caption[Diagramma di sequenza UML del flusso di autenticazione governato dalla Macchina a Stati Finiti]{Diagramma di sequenza UML del flusso di autenticazione biometrica in tempo reale su (\texttt{WSS /login}) governato dalla Macchina a Stati Finiti ($\mathcal{M}$)}
     \label{fig:diagrammaSequenza-login}
 \end{figure}
 \clearpage
@@ -324,7 +326,7 @@ dove:
     \item $T_{\text{load}}$ è il tempo di I/O per il caricamento in RAM dei grafi neurali ($\approx 3{-}4~\text{s}$);
     \item $T_{\text{det}}$ il tempo di rilevamento e allineamento sui 5 keypoint;
     \item $T_{\text{pad}}$ il tempo di inferenza di \textit{MiniFASNet} su \gls{onnx} Runtime;
-    \item $T_{\text{emb}}$ il tempo di inferenza della backbone \textit{ResNet-100} (\texttt{buffalo\_l});
+    \item $T_{\text{emb}}$ il tempo di inferenza della backbone \textit{ResNet-50} (\texttt{buffalo\_l});
     \item $T_{\text{db}}$ la latenza di rete e ricerca su \textit{MongoDB Atlas};
     \item $\delta_{\text{cold}}, \delta_{\text{match}} \in \{0, 1\}$ sono coefficienti binari di attivazione. 
 \end{itemize}
@@ -378,7 +380,7 @@ Questa separazione su più scale, permette di navigare rapidamente lo spazio vet
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\linewidth]{images/hnsw_multilivello.png}
-    \caption{Struttura gerarchica a tre livelli ($L_2, L_1, L_0$) dell'indice vettoriale \gls{hnsw} e navigazione \textit{greedy} (in rosso) per il vettore di query $e_{\text{live}}$ (stellina). La ricerca inizia dall'\textit{entry point} sul livello superiore $L_2$ e discende progressivamente fino al livello base $L_0$, convergendo verso il vicino più prossimo $e_j^*$}
+    \caption[Struttura gerarchica a tre livelli dell'indice vettoriale \acrshort{label}{hnsw}]{Struttura gerarchica a tre livelli ($L_2, L_1, L_0$) dell'indice vettoriale \gls{hnsw} e navigazione \textit{greedy} (in rosso) per il vettore di query $e_{\text{live}}$ (stellina). La ricerca inizia dall'\textit{entry point} sul livello superiore $L_2$ e discende progressivamente fino al livello base $L_0$, convergendo verso il vicino più prossimo $e_j^*$}
     \label{fig:hnswMultilivello}
 \end{figure}
 La combinazione composta da indice di tipo \gls{hnsw}, vettori in virgola mobile a 32 bit \textit{(float)} e similarità coseno rappresenta oggi lo standard dominante dei motori di ricerca vettoriale. Tuttavia, per garantire queste \textbf{prestazioni}, sia il grafo che i vettori a piena precisione devono risiedere interamente nella memoria RAM, comportando un consumo di risorse che cresce linearmente con il numero di elementi indicizzati~\cite{abtahiHNSWInformationTheoreticBinarization2025}. 
