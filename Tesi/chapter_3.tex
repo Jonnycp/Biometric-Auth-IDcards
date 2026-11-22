@@ -647,22 +647,6 @@ Rispetto alla registrazione, durante il riempimento del buffer viene eseguito so
 Per ogni fotogramma si conserva il riferimento all'immagine con il punteggio di rilevamento più alto; solo al termine del buffer la funzione \texttt{computeEmbedding} esegue l'allineamento a $112 \times 112$ e la rete \textit{ResNet-50} su quel fotogramma.
 È questa scelta a realizzare l'ipotesi $\delta_{\text{match}} = 0$ dell'Equazione~\eqref{eq:latenzaFrameOttimizzata}: il costo $T_{\text{emb}}$ e quello della query $T_{\text{db}}$ si pagano una sola volta per sessione.
 
-\paragraph{Controllo di staticità}
-Il classificatore \textit{MiniFASNet} riconosce gli attacchi dagli artefatti ottici della riproduzione, come la grana della stampa o la griglia dei pixel di uno schermo (Capitolo~\ref{cap:3.2.3-livenessOnnx}).
-Un'immagine iniettata direttamente nel flusso video tramite una fotocamera virtuale non attraversa invece alcun mezzo fisico, e può quindi ottenere uno score di vitalità elevato pur essendo perfettamente immobile.
-Per individuare questo caso, durante il riempimento del buffer il server conserva i 5 \textit{keypoint} di ogni fotogramma e, al termine, ne stima la rotazione orizzontale della testa (\textit{yaw}) tramite il rapporto dell'Equazione~\eqref{eq:rapportoYaw}:
-\begin{equation}
-    \label{eq:rapportoYaw}
-    r_t = \frac{x_{\text{naso},t} - x_{\text{occhio dx},t}}{x_{\text{occhio sx},t} - x_{\text{occhio dx},t}}, \qquad
-    \sigma_{\text{kps}} = \sqrt{\frac{1}{N'} \sum_{t=1}^{N'} \left(r_t - \bar{r}\right)^2}
-\end{equation}
-Il rapporto vale circa $0{,}5$ quando il volto è frontale e si sposta verso $0$ o $1$ quando la testa ruota.
-Essendo un rapporto tra distanze, non cambia se il volto trasla nell'inquadratura o si avvicina alla fotocamera, ma soltanto se ruota: misura quindi un movimento della testa e non dell'intera immagine.
-Sono esclusi i fotogrammi in cui la distanza tra gli occhi è inferiore a 10 pixel, e la misura richiede almeno 5 fotogrammi validi ($N' \ge 5$), altrimenti il volto è considerato statico.
-Il controllo viene valutato solo a buffer pieno e solo se lo score medio supera $\tau_{\text{liveness}}$: se $\sigma_{\text{kps}} \le \tau_{\text{static}}$ la sessione termina in \texttt{SPOOF\_ATTACK} con tipo di attacco \texttt{STATIC\_FACE}.
-Non è quindi necessario uno stato aggiuntivo nella \gls{fsm}: il controllo estende il criterio di vitalità dell'Equazione~\eqref{eq:criterioLivenessBuffer}.
-Al client viene inoltre inviato un indice di staticità in percentuale, pari a $100 - \min\left(100, \; 100 \cdot \sigma_{\text{kps}} / \tau_{\text{static}}\right)$, mostrato nella card dei risultati.
-Il controllo non è pensato contro la foto stampata tenuta in mano, il cui leggero tremolio è sufficiente a superare la soglia, né contro un video iniettato: questi limiti sono discussi nel Capitolo~\ref{cap:4-risultati}.
 Le transizioni della \gls{fsm} si traducono nei messaggi JSON inviati al client, riassunti nella Tabella~\ref{tab:messaggiWS}.
 \begin{itemize}
     \item Dopo \texttt{MATCH} o \texttt{NO\_MATCH} il server esce dal ciclo e la funzione termina, chiudendo la connessione in modo regolare.
