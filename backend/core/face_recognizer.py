@@ -6,6 +6,14 @@ def extractEmbeddings(face):
        return (None, 0.0)
    return face.embedding.copy(), float(face.det_score)
 
+# Esegui calcolo embeddings su immagine e faccia
+def computeEmbedding(detector, image: np.ndarray, face):
+    assert detector is not None, "Chiamare initFaceRecognition() prima di computeEmbedding()"
+    if face is None or getattr(face, "kps", None) is None:
+        return None, 0.0
+    detector.models["recognition"].get(image, face)
+    return extractEmbeddings(face)
+
 # Formula cos similarity tra due vettori embedding
 def cosineSimilarity(embedding1: np.ndarray, embedding2: np.ndarray):
     # 1.0 -> vettori identici
