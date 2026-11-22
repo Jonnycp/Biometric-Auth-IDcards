@@ -16,6 +16,7 @@ LIVENESS_THRESHOLD = float(os.getenv("LIVENESS_THRESHOLD", 0.6))
 SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", 0.45))
 FRAMES_LIVENESS = int(os.getenv("FRAMES_LIVENESS", 45))
 MAX_SPOOF_ATTACKS = int(os.getenv("MAX_SPOOF_ATTACKS", 10))
+STATIC_THRESHOLD = float(os.getenv("STATIC_THRESHOLD", 0.0005))
 
 async def ws_loginUser(websocket: WebSocket):
     await websocket.accept()
@@ -26,9 +27,11 @@ async def ws_loginUser(websocket: WebSocket):
 
     #PARAMETRI LIVENESS
     liveness_scores = []
+    kps_history = []
     best_frame = None
     best_face = None
     best_score = -1.0
+    perc_kps_variance = 0.0
     spoof_attack_detected_count = 0
 
     try:
@@ -50,6 +53,7 @@ async def ws_loginUser(websocket: WebSocket):
             face, cropped_face = pipelineFaceDetection(recognizer, image, det_only=True)
             if face is None:
                 liveness_scores.clear()
+                kps_history.clear()
                 best_frame = None
                 best_face = None
                 best_score = -1.0
@@ -63,7 +67,7 @@ async def ws_loginUser(websocket: WebSocket):
 
             # 4.1 Aggiorna punteggi liveness e fotogramma migliore
             liveness_scores.append(liveness_result["score"])
-
+            kps_history.append(face.kps)
             if float(face.det_score) > best_score:
                 best_score = float(face.det_score)
                 best_frame = image
@@ -82,9 +86,11 @@ async def ws_loginUser(websocket: WebSocket):
                                                "liveness_score": round(liveness_result["score"], 3),
                                                "liveness_probabilities": liveness_result["probabilities"],
                                                "liveness_threshold": liveness_result["treshold"],
+                                               "liveness_static_variance": perc_kps_variance,
                                                "liveness_progress": progress
                                                })
                     liveness_scores.clear()
+                    kps_history.clear()
                     best_frame = None
                     best_face = None
                     best_score = -1.0
@@ -95,20 +101,35 @@ async def ws_loginUser(websocket: WebSocket):
                                                "liveness_score": round(liveness_result["score"], 3),
                                                "liveness_probabilities": liveness_result["probabilities"],
                                                "liveness_threshold": liveness_result["treshold"],
+                                               "liveness_static_variance": perc_kps_variance,
                                                "liveness_progress": progress
                                                })
                     continue
             else:
                 avg_liveness_score = sum(liveness_scores) / len(liveness_scores)
+                kps_variance = calculateKpsVariance(kps_history)
+                perc_kps_variance = 100 - round(min(100.0, (kps_variance / STATIC_THRESHOLD) * 100), 2)
+                print("Average liveness score:", avg_liveness_score, "KPS variance:", kps_variance)
+
                 liveness_scores.clear()
+                kps_history.clear()
                 spoof_attack_detected_count = 0
 
-                if avg_liveness_score < LIVENESS_THRESHOLD:
+                is_liveness_ok = avg_liveness_score >= LIVENESS_THRESHOLD
+                is_motion_ok = kps_variance > STATIC_THRESHOLD
+
+                if not (is_liveness_ok and is_motion_ok):
+                    if not is_liveness_ok:
+                        reason = liveness_result["attack_type"]
+                    else:
+                        reason = "STATIC_FACE"
+
                     await websocket.send_json({"status": "SPOOF_ATTACK", 
-                                               "attack_type": liveness_result["attack_type"],
+                                               "attack_type": reason,
                                                "liveness_score": round(avg_liveness_score, 3),
                                                "liveness_probabilities": liveness_result["probabilities"],
                                                "liveness_threshold": liveness_result["treshold"],
+                                               "liveness_static_variance": round(perc_kps_variance, 3),
                                                "liveness_progress": progress
                                                })
                     best_frame = None
@@ -138,6 +159,7 @@ async def ws_loginUser(websocket: WebSocket):
                     "liveness_score": round(avg_liveness_score, 3),
                     "liveness_probabilities": liveness_result["probabilities"],
                     "liveness_threshold": liveness_result["treshold"],
+                    "liveness_static_variance": round(perc_kps_variance, 3),
                     "similarity_threshold": SIMILARITY_THRESHOLD,
                     "vector_score": round(user_result.vectorScore, 3) if user_result.vectorScore is not None else 0.0,
                     "embedding_score": round(best_score, 3),
@@ -188,3 +210,29 @@ def checkImageFrameWS(frameBytes: bytes) -> dict[str, str | bool]:
         "valid": True,
         "message": "Fotogramma valido."
     }
+
+import numpy as np
+
+# Calcola microvarianza kps
+def calculateKpsVariance(kps_history: list[np.ndarray]) -> float:
+    kps = np.array(kps_history, dtype=np.float32)  # Shape: (N, 5, 2)
+    if len(kps) < 5:
+        return 0.0
+
+    # Estrai le coordinate X di occhio dx (0), occhio sx (1) e naso (2) su tutti i frame
+    right_eye_x = kps[:, 0, 0]
+    left_eye_x  = kps[:, 1, 0]
+    nose_x      = kps[:, 2, 0]
+
+    eye_widths = left_eye_x - right_eye_x
+
+    # Filtra eventuali frame anomali dove gli occhi sono troppo vicini o invertiti
+    valid_mask = eye_widths >= 10.0
+    if np.sum(valid_mask) < 5:
+        return 0.0
+
+    # Calcola il rapporto Yaw per ogni frame valido (~0.5 quando guardi dritto)
+    yaw_values = (nose_x[valid_mask] - right_eye_x[valid_mask]) / eye_widths[valid_mask]
+
+    # Restituisce la deviazione standard dello Yaw (identica a mov_std dello script)
+    return float(np.std(yaw_values))
