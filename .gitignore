@@ -7,7 +7,8 @@
 /Tesi/*.glsdefs
 /Tesi/*.ist
 /Tesi/*.gz
-
+/Tesi/*.bbl
+/Tesi/*.glsdefs
 /backend/.env
 /backend/datasets/id_cards/*
 
@@ -20,3 +21,7 @@ __pycache__/
 /frontend/build/
 /frontend/.DS_Store
 /frontend/.env
+
+/documents
+/backend/.insightface
+/Tesi/template
