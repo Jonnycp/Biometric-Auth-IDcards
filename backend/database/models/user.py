@@ -8,18 +8,19 @@ class User(BaseModel):
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserPublic(BaseModel):
-    """Dati dell'utente restituiti al client: l'embedding non lascia mai il server."""
     fullName: str
-    score: float
     createdAt: datetime
 
     @classmethod
-    def fromUser(cls, user: "User") -> "UserPublic":
-        return cls(**user.model_dump(exclude={"embedding"}))
+    def fromUser(cls, user):
+        return cls(
+            fullName=user.fullName,
+            createdAt=user.createdAt
+        )
 
 class UserResult(BaseModel):
     isMatch: bool
-    user: User | None = None
+    user: UserPublic | None = None
     similarity: float
     vectorScore: float | None = None
 
@@ -29,4 +30,3 @@ class UserResponse(BaseModel):
     score: float = 0.0
     fixProspective: bool = False
     fixContrast: bool = False
-    

@@ -7,12 +7,11 @@ import os
 from backend.core.id_card import decodeImage, preprocessIDCard
 from backend.core.face_detector import pipelineFaceDetection
 from backend.core.face_recognizer import extractEmbeddings
-from backend.database.models.user import User, UserPublic, UserResponse
+from backend.database.models.user import User, UserResponse, UserPublic
 from backend.database.user_controller import createUser, searchUser_byEmbedding
 
 load_dotenv()
-SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", 0.35))
-
+SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", 0.45))
 MAX_FILE_SIZE = 5 * 1024 * 1024
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP"} 
