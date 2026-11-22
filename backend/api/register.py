@@ -1,20 +1,24 @@
 from fastapi import HTTPException, Request, UploadFile, File, Form
 from PIL import Image
+from dotenv import load_dotenv
 import io
+import os
 
 from backend.core.id_card import decodeImage, preprocessIDCard
 from backend.core.face_detector import pipelineFaceDetection
 from backend.core.face_recognizer import extractEmbeddings
-from backend.database.models.user import User, UserResponse
-from backend.database.user_controller import createUser
+from backend.database.models.user import User, UserResponse, UserPublic
+from backend.database.user_controller import createUser, searchUser_byEmbedding
 
+load_dotenv()
+SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", 0.45))
 MAX_FILE_SIZE = 5 * 1024 * 1024
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP"} 
 
 async def registerUser(req: Request, 
                        idCardImage: UploadFile = File(..., description="Foto del documento"), 
-                       fullName: str = Form(..., description="Nome e cognome dell'utente")):
+                       fullName: str = Form(..., min_length=2, max_length=150, description="Nome e cognome dell'utente")):
     # 1. Lettura immagine
     image_bytes = await checkImageFile(idCardImage)
     image = decodeImage(image_bytes)
@@ -31,7 +35,12 @@ async def registerUser(req: Request,
     if embedding is None:
         raise HTTPException(status_code=400, detail="Nessun volto rilevato nell'immagine.")
 
-    # 4. Salvataggio in db
+    # 4. Controllo esistenza utente
+    existing_user = searchUser_byEmbedding(embedding, SIMILARITY_THRESHOLD)
+    if existing_user.isMatch:
+        raise HTTPException(status_code=400, detail="Indentità biometrica già registrata.")
+    
+    # 5. Salvataggio in db
     user = User(
         fullName=fullName,
         embedding=embedding.tolist(),
@@ -42,7 +51,7 @@ async def registerUser(req: Request,
     # 5. Response
     return UserResponse(
         message="Utente registrato con successo.",
-        user=user,
+        user=UserPublic.fromUser(user),
         score=score,
         fixProspective=fixes["prospective"],
         fixContrast=fixes["contrast"]
