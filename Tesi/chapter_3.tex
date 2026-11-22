@@ -149,6 +149,7 @@ La Tabella~\ref{tab:env} riporta le variabili del backend con i valori di riferi
         \texttt{LIVENESS\_THRESHOLD} & $0{,}6$ & Soglia $\tau_{\text{liveness}}$ sullo score medio di vitalità \\
         \texttt{FRAMES\_LIVENESS} & $35$ & Dimensione $N$ del buffer temporale di fotogrammi \\
         \texttt{MAX\_SPOOF\_ATTACKS} & $7$ & Numero massimo $M$ di fotogrammi segnalati come \gls{pa} per interrompere anticipatamente la sessione \\
+        \texttt{STATIC\_THRESHOLD} & $0{,}0005$ & Soglia minima $\tau_{\text{static}}$ sull'indice di movimento della testa \\
         \hline
         \multicolumn{3}{@{}l}{\textit{Infrastruttura}} \\
         \texttt{MONGODB\_URI} & (riservato) & Stringa di connessione al \textit{cluster} \textit{MongoDB Atlas} \\
@@ -169,6 +170,7 @@ Le variabili si suddividono in tre gruppi:
     \item \texttt{FRAMES\_LIVENESS} fissa la dimensione $N$ del buffer
     \item \texttt{MAX\_SPOOF\_ATTACKS} fissa la soglia $M$ di fotogrammi segnalati come \gls{pa} che porta anticipatamente allo stato \texttt{SPOOF\_ATTACK}
     \item \texttt{LIVENESS\_THRESHOLD} è la soglia $\tau_{\text{liveness}}$ del criterio~\eqref{eq:criterioLivenessBuffer}
+    \item \texttt{STATIC\_THRESHOLD} è la soglia $\tau_{\text{static}}$ del criterio~\eqref{eq:criterioLivenessBuffer}
     \item \texttt{SIMILARITY\_THRESHOLD} è la soglia $\tau$ della regola decisionale del Capitolo~\ref{cap:1-fondamenti} per l'accettazione del \textit{match}
     \end{itemize}
 È importante osservare che \texttt{SIMILARITY\_THRESHOLD} viene confrontata con la similarità coseno ricalcolata dal backend tra l'embedding della query e quello del candidato restituito dall'indice, e non con il punteggio riscalato in $[0,1]$ prodotto da \textit{Atlas} secondo l'Equazione~\eqref{eq:scoreAtlas}. Quindi il valore $0{,}35$ è direttamente confrontabile con la soglia $\tau$ della regola decisionale del Capitolo~\ref{cap:1-fondamenti}.
@@ -615,7 +617,7 @@ Il Listato~\ref{lst:wsLoop} riporta, in forma ridotta, il corpo del ciclo.
 \begin{lstlisting}[float=htbp, language=Python, caption={Ciclo di ricezione della sessione di \textit{live verification}, estratto da \texttt{api/login.py}.}, label={lst:wsLoop}]
 while True:
     image = decodeImage(await websocket.receive_bytes())
-    face = detectMainFace(recognizer, image)
+    face, _ = pipelineFaceDetection(recognizer, image, det_only=True)
     if face is None:
         reset()
         await websocket.send_json({"status": "WAITING_FACE"})
@@ -623,15 +625,15 @@ while True:
 
     live = checkLiveness(liveness_session, image, face.bbox, LIVENESS_THRESHOLD)
     liveness_scores.append(live["score"])
+    kps_history.append(face.kps)
     if face.det_score > best_score:            # aggiorna f_best
         best_score, best_frame, best_face = face.det_score, image, face
     if not live["is_live"]:
         spoof_count += 1
 
-    if len(liveness_scores) < FRAMES_LIVENESS:
-        status = "SPOOF_ATTACK" if spoof_count > MAX_SPOOF_ATTACKS \
-                 else "WAITING_LIVENESS"
-        ...                                    # invio e continue
+    motion = calculateKpsVariance(kps_history)
+    if avg < LIVENESS_THRESHOLD or motion <= STATIC_THRESHOLD:
+        ...             # SPOOF_ATTACK (PRINT/SCREEN o STATIC_FACE)
     else:
         avg = sum(liveness_scores) / len(liveness_scores)
         if avg < LIVENESS_THRESHOLD: ...       # SPOOF_ATTACK
@@ -641,14 +643,30 @@ while True:
         break
 \end{lstlisting}
 
-Rispetto alla registrazione, durante il riempimento del buffer viene eseguito soltanto il rilevamento: la funzione \texttt{detectMainFace} invoca direttamente il rilevatore del pacchetto \texttt{buffalo\_l} e restituisce riquadro, 5 \textit{keypoint} e punteggio, senza calcolare l'embedding.
+Rispetto alla registrazione, durante il riempimento del buffer viene eseguito soltanto il rilevamento: la funzione \texttt{pipelineFaceDetection} con opzione \texttt{det\_only=True} invoca soltanto il rilevatore del pacchetto \texttt{buffalo\_l} e restituisce il riquadro, 5 \textit{keypoint} e punteggio, senza calcolare l'embedding.
 Per ogni fotogramma si conserva il riferimento all'immagine con il punteggio di rilevamento più alto; solo al termine del buffer la funzione \texttt{computeEmbedding} esegue l'allineamento a $112 \times 112$ e la rete \textit{ResNet-50} su quel fotogramma.
 È questa scelta a realizzare l'ipotesi $\delta_{\text{match}} = 0$ dell'Equazione~\eqref{eq:latenzaFrameOttimizzata}: il costo $T_{\text{emb}}$ e quello della query $T_{\text{db}}$ si pagano una sola volta per sessione.
 
+\paragraph{Controllo di staticità}
+Il classificatore \textit{MiniFASNet} riconosce gli attacchi dagli artefatti ottici della riproduzione, come la grana della stampa o la griglia dei pixel di uno schermo (Capitolo~\ref{cap:3.2.3-livenessOnnx}).
+Un'immagine iniettata direttamente nel flusso video tramite una fotocamera virtuale non attraversa invece alcun mezzo fisico, e può quindi ottenere uno score di vitalità elevato pur essendo perfettamente immobile.
+Per individuare questo caso, durante il riempimento del buffer il server conserva i 5 \textit{keypoint} di ogni fotogramma e, al termine, ne stima la rotazione orizzontale della testa (\textit{yaw}) tramite il rapporto dell'Equazione~\eqref{eq:rapportoYaw}:
+\begin{equation}
+    \label{eq:rapportoYaw}
+    r_t = \frac{x_{\text{naso},t} - x_{\text{occhio dx},t}}{x_{\text{occhio sx},t} - x_{\text{occhio dx},t}}, \qquad
+    \sigma_{\text{kps}} = \sqrt{\frac{1}{N'} \sum_{t=1}^{N'} \left(r_t - \bar{r}\right)^2}
+\end{equation}
+Il rapporto vale circa $0{,}5$ quando il volto è frontale e si sposta verso $0$ o $1$ quando la testa ruota.
+Essendo un rapporto tra distanze, non cambia se il volto trasla nell'inquadratura o si avvicina alla fotocamera, ma soltanto se ruota: misura quindi un movimento della testa e non dell'intera immagine.
+Sono esclusi i fotogrammi in cui la distanza tra gli occhi è inferiore a 10 pixel, e la misura richiede almeno 5 fotogrammi validi ($N' \ge 5$), altrimenti il volto è considerato statico.
+Il controllo viene valutato solo a buffer pieno e solo se lo score medio supera $\tau_{\text{liveness}}$: se $\sigma_{\text{kps}} \le \tau_{\text{static}}$ la sessione termina in \texttt{SPOOF\_ATTACK} con tipo di attacco \texttt{STATIC\_FACE}.
+Non è quindi necessario uno stato aggiuntivo nella \gls{fsm}: il controllo estende il criterio di vitalità dell'Equazione~\eqref{eq:criterioLivenessBuffer}.
+Al client viene inoltre inviato un indice di staticità in percentuale, pari a $100 - \min\left(100, \; 100 \cdot \sigma_{\text{kps}} / \tau_{\text{static}}\right)$, mostrato nella card dei risultati.
+Il controllo non è pensato contro la foto stampata tenuta in mano, il cui leggero tremolio è sufficiente a superare la soglia, né contro un video iniettato: questi limiti sono discussi nel Capitolo~\ref{cap:4-risultati}.
 Le transizioni della \gls{fsm} si traducono nei messaggi JSON inviati al client, riassunti nella Tabella~\ref{tab:messaggiWS}.
 \begin{itemize}
     \item Dopo \texttt{MATCH} o \texttt{NO\_MATCH} il server esce dal ciclo e la funzione termina, chiudendo la connessione in modo regolare.
-    \item Se il contatore \texttt{spoof\_count} supera la soglia $M$ prima che il buffer sia pieno, il server invia \texttt{SPOOF\_ATTACK},azzera il buffer e torna in $s_0$. È il client a chiudere il canale alla ricezione del messaggio.
+    \item Se il contatore \texttt{spoof\_count} supera la soglia $M$ prima che il buffer sia pieno, oppure se a buffer pieno il criterio dell'Equazione~\eqref{eq:criterioLivenessBuffer} non è soddisfatto, il server invia \texttt{SPOOF\_ATTACK}, azzera il buffer e torna in $s_0$. È il client a chiudere il canale alla ricezione del messaggio.
 \end{itemize}
 Dal punto di vista dell'utente, quindi, entrambi gli esiti concludono la sessione.
 Qualsiasi eccezione imprevista chiude infine il canale con il codice \texttt{1011}, che segnala un errore interno del server, riportandone una descrizione sintetica.
@@ -664,13 +682,30 @@ Qualsiasi eccezione imprevista chiude infine il canale con il codice \texttt{101
         \texttt{ERROR} & Fotogramma vuoto, troppo grande, corrotto o non decodificabile & \texttt{message} \\
         \texttt{WAITING\_FACE} & Nessun volto rilevato: il buffer viene azzerato ($s_0$) & \texttt{message} \\
         \texttt{WAITING\_LIVENESS} & Volto presente e buffer non ancora pieno ($s_1$) & \texttt{liveness\_score}, \texttt{liveness\_probabilities}, \texttt{liveness\_threshold}, \texttt{liveness\_progress} \\
-        \texttt{SPOOF\_ATTACK} & Più di $M$ fotogrammi segnalati, oppure $\bar{L} < \tau_{\text{liveness}}$ a buffer pieno ($s_2$) & \texttt{attack\_type}, \texttt{liveness\_score} (medio a buffer pieno), probabilità, soglia \\
-        \texttt{MATCH} / \texttt{NO\_MATCH} & Vitalità confermata e confronto con il candidato restituito dall'indice ($s_3$) & \texttt{similarity}, \texttt{similarity\_threshold}, \texttt{vector\_score}, \texttt{liveness\_score}, \texttt{user} (solo con \texttt{MATCH}) \\
+        \texttt{SPOOF\_ATTACK} & Più di $M$ fotogrammi segnalati, oppure a buffer pieno $\bar{L} < \tau_{\text{liveness}}$ o $\sigma_{\text{kps}} \le \tau_{\text{static}}$ ($s_2$) & \texttt{liveness\_static\_variance} con \texttt{attack\_type}: \texttt{PRINT}, \texttt{SCREEN} o \texttt{STATIC\_FACE} \\
+        \texttt{MATCH} / \texttt{NO\_MATCH} & Vitalità confermata e confronto con il candidato restituito dall'indice ($s_3$) & \texttt{similarity}, \texttt{similarity\_threshold}, \texttt{vector\_score}, \texttt{liveness\_score}, \texttt{liveness\_static\_variance}, \texttt{user} (solo con \texttt{MATCH}) \\
         \hline
     \end{tabular*}
     \caption{Messaggi inviati dal server sul canale \gls{wss} e corrispondenza con gli stati della \gls{fsm}.}
     \label{tab:messaggiWS}
 \end{table}
+
+\paragraph{Controllo di staticità}
+Il classificatore \textit{MiniFASNet} riconosce gli attacchi dagli artefatti ottici della riproduzione, come la grana della stampa o la griglia dei pixel di uno schermo (Capitolo~\ref{cap:3.2.3-livenessOnnx}).
+Un'immagine iniettata direttamente nel flusso video tramite una fotocamera virtuale non attraversa invece alcun mezzo fisico, e può quindi ottenere uno score di vitalità elevato pur essendo perfettamente immobile.
+Per individuare questo caso, durante il riempimento del buffer il server conserva i 5 \textit{keypoint} di ogni fotogramma e, al termine, ne stima la rotazione orizzontale della testa (\textit{yaw}) tramite il rapporto dell'Equazione~\eqref{eq:rapportoYaw}:
+\begin{equation}
+    \label{eq:rapportoYaw}
+    r_t = \frac{x_{\text{naso},t} - x_{\text{occhio dx},t}}{x_{\text{occhio sx},t} - x_{\text{occhio dx},t}}, \qquad
+    \sigma_{\text{kps}} = \sqrt{\frac{1}{N'} \sum_{t=1}^{N'} \left(r_t - \bar{r}\right)^2}
+\end{equation}
+Il rapporto vale circa $0{,}5$ quando il volto è frontale e si sposta verso $0$ o $1$ quando la testa ruota.
+Essendo un rapporto tra distanze, non cambia se il volto trasla nell'inquadratura o si avvicina alla fotocamera, ma soltanto se ruota: misura quindi un movimento della testa e non dell'intera immagine.
+Sono esclusi i fotogrammi in cui la distanza tra gli occhi è inferiore a 10 pixel, e la misura richiede almeno 5 fotogrammi validi ($N' \ge 5$), altrimenti il volto è considerato statico.
+Il controllo viene valutato solo a buffer pieno e solo se lo score medio supera $\tau_{\text{liveness}}$: se $\sigma_{\text{kps}} \le \tau_{\text{static}}$ la sessione termina in \texttt{SPOOF\_ATTACK} con tipo di attacco \texttt{STATIC\_FACE}.
+Non è quindi necessario uno stato aggiuntivo nella \gls{fsm}: il controllo estende il criterio di vitalità dell'Equazione~\eqref{eq:criterioLivenessBuffer}.
+Al client viene inoltre inviato un indice di staticità in percentuale, pari a $100 - \min\left(100, \; 100 \cdot \sigma_{\text{kps}} / \tau_{\text{static}}\right)$, mostrato nella card dei risultati.
+Il controllo non è pensato contro la foto stampata tenuta in mano, il cui leggero tremolio è sufficiente a superare la soglia, né contro un video iniettato: questi limiti sono discussi nel Capitolo~\ref{cap:4-risultati}.
 
 \paragraph{Interrogazione di MongoDB Atlas}
 La ricerca $1:N$ è implementata nella funzione \texttt{searchUser\_byEmbedding} del modulo \texttt{user\_controller.py}, che esegue la \textit{pipeline} di aggregazione del Listato~\ref{lst:vectorSearch}.
@@ -789,6 +824,7 @@ Ogni messaggio del server aggiorna l'interfaccia secondo la corrispondenza della
     \label{tab:feedbackUI}
 \end{table}
 La barra di avanzamento utilizza direttamente il campo \texttt{liveness\_progress} calcolato dal server: il client non conosce la dimensione $N$ del buffer, e una diversa configurazione di \texttt{FRAMES\_LIVENESS} si riflette sull'interfaccia senza modifiche al codice.
+La card dei risultati mostra anche l'indice di staticità e, per un attacco \texttt{STATIC\_FACE}, la dicitura \emph{Faccia statica}.
 Se l'utente \textbf{esce dall'inquadratura} il server azzera il buffer (Capitolo~\ref{cap:3.3-orchestrazione}) e la barra riparte da zero alla ripresa, rendendo esplicito che la verifica richiede una presenza continua davanti alla fotocamera.
 
 Alla ricezione di un esito finale, la funzione \texttt{stopScan} interrompe il temporizzatore, chiude il WebSocket con il codice di chiusura normale \texttt{1000}, ferma le tracce della fotocamera e rilascia l'elemento video: l'indicatore di acquisizione del dispositivo si spegne, segnalando all'utente che le immagini \textbf{non vengono più raccolte}.

@@ -16,6 +16,7 @@ export interface LoginMatchResponse {
   similarity: number;
   liveness_score: number;
   liveness_probabilities: LivenessProbabilities;
+  liveness_static_variance: number;
   liveness_threshold: number;
   similarity_threshold: number;
   vector_score: number;
@@ -25,10 +26,11 @@ export interface LoginMatchResponse {
 
 export interface LoginSpoofResponse {
   status: "SPOOF_ATTACK";
-  attack_type: "PRINT" | "SCREEN" | "NONE" | "CROP FAILED" | string;
+  attack_type: "PRINT" | "SCREEN" | "NONE" | "CROP FAILED" | "STATIC_FACE" | string;
   liveness_score: number;
   liveness_probabilities: LivenessProbabilities;
   liveness_threshold: number;
+  liveness_static_variance: number;
   liveness_progress?: number;
 }
 

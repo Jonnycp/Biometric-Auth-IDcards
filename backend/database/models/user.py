@@ -22,6 +22,7 @@ class UserResponse(BaseModel):
 
 class UserPublic(BaseModel):
     fullName: str
+    score: float = 0.0
     createdAt: datetime
 
     @classmethod

@@ -240,7 +240,7 @@ dove:
         \item percentuali di spoofing con \gls{pa} ${\%_{\text{\gls{pa}}}}_t$ (\textit{print attack}, \textit{replay attack})
         \item punteggio di qualità ${q_{\text{face}}}_t$
         \item punteggio di similarità ${S_c}_t$
-        \item varianza geometrica dei keypoint $\sigma_{\text{kps}}^2$
+        \item indice di movimento della testa $\sigma_{\text{kps}}$, calcolato dai keypoint
     \end{itemize}
     \item $S$ è l'insieme degli stati:\begin{itemize}
         \item \texttt{WAITING\_FACE}
@@ -258,19 +258,19 @@ Il funzionamento algoritmico della pipeline di autenticazione si sviluppa attrav
     \item \textbf{Stato $s_1$ \texttt{WAITING\_LIVENESS}}: rappresenta il nucleo dell'analisi temporale multi-frame, progettato per raccogliere una finestra di $N$ fotogrammi consecutivi (con $N \in [30,60]$ corrispondenti a circa $1\sim2~\text{secondi}$ di acquisizione video). Per ogni fotogramma ricevuto $f_t~\text{con}~t \in \{1, \dots, N\}$, il backend esegue le seguenti operazioni in tempo reale: \begin{enumerate}
         \item Calcola lo \textbf{score di vitalità passiva} $l_t$ con \textit{MiniFASNet} su \gls{onnx} Runtime, accumulando nel vettore di sessione $\mathbf{l} = [l_1, \dots, l_N]$;
         \item \textbf{Aggiorna il contatore} $p$ dei tentativi di spoofing se dall'analisi del frame $f_t$ risultano percentuali sopra soglia ($\tau_{\text{live}}$) di \textit{print attack} o \textit{replay attack}
-        \item Registra la posizione dei \textbf{5 keypoint biometrici} ${(x_{k,t}, y_{k,t})}_{k=1}^{5}$ per monitorarne la micro-varianza spaziale $\sigma_{\text{kps}}^2$ nel tempo, assicurandosi che il soggetto presenti una naturale vitalità biologica ma mantenga una posa frontale neutra conforme ai limiti angolari ($\pm 15^\circ$) dello standard ICAO 9303~\cite{icao9303};
+        \item Registra la posizione dei \textbf{5 keypoint biometrici} ${(x_{k,t}, y_{k,t})}_{k=1}^{5}$, da cui a fine buffer si stima quanto la testa abbia ruotato nel tempo ($\sigma_{\text{kps}}$): un volto reale presenta sempre piccoli movimenti naturali, mentre un'immagine fissa iniettata nel flusso video resta identica fotogramma dopo fotogramma;
         \item Aggiorna il riferimento al \textbf{fotogramma ottimo} trattenendo in memoria il frame caratterizzato dal punteggio di rilevamento e nitidezza ottica più alto $f_{\text{best}} = \arg\max_{t} {q_{\text{face}}}_t$;
         \item \textbf{Invia al client} un messaggio \texttt{JSON} con la percentuale di avanzamento del buffer $\text{progress} = \frac{t}{N} \cdot 100$ per aggiornare la barra di stato nella \gls{pwa} (rispettando il requisito $RF6$).
     \end{enumerate}
     Qualora l'utente esca dall'inquadratura prima del completamento del buffer, la \gls{fsm} azzera l'accumulatore e riporta la sessione in $s_0$.
-    Al raggiungimento degli $N$ fotogrammi ($t = N$), la macchina valuta lo score medio di vitalità $\bar{l}$ e la micro-varianza dei keypoint attraverso la condizione di vitalità congiunta definita nell'Equazione~\eqref{eq:criterioLivenessBuffer}:
+    Al raggiungimento degli $N$ fotogrammi ($t = N$), la macchina valuta lo score medio di vitalità $\bar{L}$ e l'indice di movimento $\sigma_{\text{kps}}$ attraverso la condizione di vitalità congiunta definita nell'Equazione~\eqref{eq:criterioLivenessBuffer}:
     \begin{equation}
         \label{eq:criterioLivenessBuffer}
-        \bar{L} = \frac{1}{N} \sum_{t=1}^{N} l_t \ge \tau_{\text{liveness}} \quad \land \quad \sigma_{\text{kps}}^2 \in [\sigma_{\min}^2, \, \sigma_{\max}^2]
+        \bar{L} = \frac{1}{N} \sum_{t=1}^{N} l_t \ge \tau_{\text{liveness}} \quad \land \quad \sigma_{\text{kps}} > \tau_{\text{static}}
     \end{equation}
-    dove $\bar{L}$ è la media aritmetica degli score passivi (con soglia $\tau_{\text{liveness}} = 0{,}60$) e $[\sigma_{\min}^2, \, \sigma_{\max}^2]$ delimita l'intervallo di micro-movimento fisiologico dei \textit{landmark} (escludendo sia la rigidità assoluta di una foto fissa sia movimenti bruschi che causano \textit{motion blur});
+    dove $\bar{L}$ è la media aritmetica degli score passivi (con soglia $\tau_{\text{liveness}} = 0{,}60$) e $\tau_{\text{static}}$ è la soglia minima di movimento, sotto la quale il volto è considerato statico (Capitolo~\ref{cap:3.3-orchestrazione});
 
-    \item \textbf{Stato $s_2$ \texttt{SPOOF\_ATTACK}}: si finisce in questo stato se al termine della valutazione del buffer (o anticipatamente in presenza di $M$ frame fortemente negativi), risulta $\bar{L} < \tau_{\text{liveness}}$ oppure $\sigma_{\text{kps}}^2 < \sigma_{\min}^2$. Il server blocca l'esecuzione del modulo di riconoscimento facciale, notifica al frontend il tentativo di \textit{spoofing} e dealloca il buffer dalla RAM;
+    \item \textbf{Stato $s_2$ \texttt{SPOOF\_ATTACK}}: si finisce in questo stato se al termine della valutazione del buffer (o anticipatamente in presenza di $M$ frame fortemente negativi), risulta $\bar{L} < \tau_{\text{liveness}}$ oppure $\sigma_{\text{kps}} \le \tau_{\text{static}}$. Il server blocca l'esecuzione del modulo di riconoscimento facciale, notifica al frontend il tentativo di \textit{spoofing} e dealloca il buffer dalla RAM;
 
     \item \textbf{Stato $s_3$ \texttt{MATCH / NO\_MATCH}}: se la condizione di vitalità è soddisfatta, il backend esegue il modulo di estrazione e confronto sul fotogramma ottimo $f_{\text{best}}$, calcolando l'embedding $e_{\text{live}} \in \mathbb{R}^{512}$ tramite \textit{\gls{arcface}} e lancia \textbf{una singola query vettoriale $1:N$} su \textit{MongoDB Atlas Vector Search}.
     Ricevuto il candidato più vicino dal database con score di \textit{similarity coseno}, il livello applicativo ricalcola in modo esatto la similarità coseno $S_c(e_{\text{live}}, e_{\text{ID}})$ (Capitolo~\ref{cap:2.4-persistenza}) e applica la regola decisionale rispetto alla soglia calibrata $\tau \in [0{,}30, \, 0{,}50]$ ($RF4$).
@@ -302,7 +302,7 @@ La Tabella~\ref{tab:statiFSM} riassume formalmente gli stati della \gls{fsm} pro
         \hline
         $s_1$: \texttt{WAITING\_LIVENESS} & $t < N \land f_t \text{ valido}$ & $s_1$: \texttt{WAITING\_LIVENESS} \\
         \hline
-        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land (\bar{L} < \tau_{\text{liveness}} \lor \sigma_{\text{kps}}^2 \notin [\sigma_{\min}^2, \sigma_{\max}^2])$ & $s_2$: \texttt{SPOOF\_ATTACK} \\
+        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land (\bar{L} < \tau_{\text{liveness}} \lor \sigma_{\text{kps}} > \tau_{\text{static}})$ & $s_2$: \texttt{SPOOF\_ATTACK} \\
         \hline
         $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land \bar{L} \ge \tau_{\text{liveness}} \land \sigma_{\text{kps}}^2 \in [\sigma_{\min}^2, \sigma_{\max}^2] \land S_c(e_{\text{live}}, e_{\text{ID}}) \ge \tau$ & $s_3$: \texttt{MATCH} \\
         \hline
