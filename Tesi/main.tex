@@ -51,6 +51,41 @@
 \usepackage{tabularx}
 \usepackage{subfig}
 \usepackage{graphicx}
+\usepackage{listings}
+\definecolor{codebg}{rgb}{0.97,0.97,0.98}
+\definecolor{codeframe}{rgb}{0.80,0.80,0.83}
+\definecolor{codekeyword}{rgb}{0.13,0.29,0.53}
+\definecolor{codecomment}{rgb}{0.40,0.45,0.45}
+\definecolor{codestring}{rgb}{0.55,0.18,0.18}
+\definecolor{codenumber}{rgb}{0.50,0.50,0.55}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekeyword}\bfseries,
+    commentstyle=\color{codecomment}\itshape,
+    stringstyle=\color{codestring},
+    numberstyle=\tiny\color{codenumber},
+    numbers=left,
+    numbersep=10pt,
+    lineskip=2pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    columns=flexible,
+    keepspaces=true,
+    showstringspaces=false,
+    frame=single,
+    framexleftmargin=20pt,
+    framexrightmargin=8pt,
+    framextopmargin=6pt,
+    framexbottommargin=6pt,
+    xleftmargin=22pt,
+    xrightmargin=10pt,
+    aboveskip=12pt,
+    belowskip=12pt
+}
+\renewcommand{\lstlistingname}{Listato}
 
 \usepackage{array}
 
