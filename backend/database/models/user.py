@@ -9,14 +9,24 @@ class User(BaseModel):
 
 class UserResult(BaseModel):
     isMatch: bool
-    user: User | None = None
+    user: UserPublic | None = None
     similarity: float
     vectorScore: float | None = None
 
 class UserResponse(BaseModel):
     message: str
-    user: User | None = None
+    user: UserPublic | None = None
     score: float = 0.0
     fixProspective: bool = False
     fixContrast: bool = False
-    
+
+class UserPublic(BaseModel):
+    fullName: str
+    createdAt: datetime
+
+    @classmethod
+    def fromUser(cls, user: User):
+        return cls(
+            fullName=user.fullName,
+            createdAt=user.createdAt
+        )

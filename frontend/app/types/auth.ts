@@ -7,7 +7,6 @@ export interface LivenessProbabilities {
 export interface UserData {
   fullName: string;
   score: number;
-  embedding: number[];
   createdAt: string;
 }
 
