@@ -26,7 +26,8 @@ async def ws_loginUser(websocket: WebSocket):
 
     #PARAMETRI LIVENESS
     liveness_scores = []
-    best_embedding = None
+    best_frame = None
+    best_face = None
     best_score = -1.0
     spoof_attack_detected_count = 0
 
@@ -47,10 +48,10 @@ async def ws_loginUser(websocket: WebSocket):
 
             # 3. Face detection
             face, cropped_face = pipelineFaceDetection(recognizer, image)
-            embedding, score = extractEmbeddings(face)
-            if embedding is None or face is None:
+            if face is None:
                 liveness_scores.clear()
-                best_embedding = None
+                best_frame = None
+                best_face = None
                 best_score = -1.0
                 spoof_attack_detected_count = 0
                 
@@ -60,11 +61,13 @@ async def ws_loginUser(websocket: WebSocket):
             # 4. Liveness check
             liveness_result = checkLiveness(liveness_session, image, face.bbox, LIVENESS_THRESHOLD)
 
-            # 4.1 Aggiorna punteggi liveness e embedding migliore
+            # 4.1 Aggiorna punteggi liveness e fotogramma migliore
             liveness_scores.append(liveness_result["score"])
-            if score > best_score:
-                best_score = score
-                best_embedding = embedding
+
+            if float(face.det_score) > best_score:
+                best_score = float(face.det_score)
+                best_frame = image
+                best_face = face
             progress = int((len(liveness_scores) / FRAMES_LIVENESS) * 100)
 
             if not liveness_result["is_live"]:
@@ -82,7 +85,8 @@ async def ws_loginUser(websocket: WebSocket):
                                                "liveness_progress": progress
                                                })
                     liveness_scores.clear()
-                    best_embedding = None
+                    best_frame = None
+                    best_face = None
                     best_score = -1.0
                     spoof_attack_detected_count = 0
                     continue
@@ -107,12 +111,17 @@ async def ws_loginUser(websocket: WebSocket):
                                                "liveness_threshold": liveness_result["treshold"],
                                                "liveness_progress": progress
                                                })
-                    best_embedding = None
+                    best_frame = None
+                    best_face = None
                     best_score = -1.0
                     continue
                 
                 # 5. Cerca in db
+                best_embedding, _ = extractEmbeddings(best_face)
+                best_frame = None
+                best_face = None
                 if best_embedding is None:
+                    best_score = -1.0
                     await websocket.send_json({"status": "ERROR", "message": "Nessun embedding valido trovato."})
                     continue
 
@@ -128,7 +137,7 @@ async def ws_loginUser(websocket: WebSocket):
                     "liveness_threshold": liveness_result["treshold"],
                     "similarity_threshold": SIMILARITY_THRESHOLD,
                     "vector_score": round(user_result.vectorScore, 3) if user_result.vectorScore is not None else 0.0,
-                    "embedding_score": round(score, 3),
+                    "embedding_score": round(best_score, 3),
                     "user": user_result.user.model_dump(mode="json") if user_result.user and (user_result.similarity >= SIMILARITY_THRESHOLD-0.10) else None,
                 }
                 await websocket.send_json(payload)
