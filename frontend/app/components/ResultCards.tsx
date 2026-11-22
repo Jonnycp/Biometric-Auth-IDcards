@@ -65,6 +65,8 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
                   ? "Foto Stampata (Print)"
                   : spoof.attack_type === "SCREEN"
                   ? "Display / Schermo (Screen)"
+                  : spoof.attack_type === "STATIC_FACE"
+                  ? "Faccia Statica (Static Face)"
                   : spoof.attack_type}
               </h3>
             </div>
@@ -96,7 +98,24 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
               </ProgressBar.Track>
             </ProgressBar>
           </div>
-
+          <div>
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-zinc-400 font-medium">Punteggio Staticità</span>
+            <span className="font-mono font-bold text-emerald-400">
+              {spoof.liveness_static_variance.toFixed(2)}%{" "}
+            </span>
+          </div>
+          <ProgressBar
+            value={spoof.liveness_static_variance}
+            color="success"
+            size="sm"
+            aria-label="Liveness score"
+          >
+            <ProgressBar.Track className="bg-zinc-800 h-2 rounded-full">
+              <ProgressBar.Fill className="rounded-full bg-emerald-500" />
+            </ProgressBar.Track>
+          </ProgressBar>
+        </div>
           <div className="grid grid-cols-3 gap-2 pt-1 text-center">
             <div className="py-2 px-1 rounded-md bg-zinc-800/40 border border-zinc-700/40">
               <span className="text-[10px] text-zinc-400 block">Reale</span>
@@ -219,7 +238,6 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
             </ProgressBar.Track>
           </ProgressBar>
         </div>
-
         {/* Barra Liveness Score (MiniFASNet v2) */}
         <div>
           <div className="flex justify-between items-center mb-1.5">
@@ -242,6 +260,26 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
             </ProgressBar.Track>
           </ProgressBar>
         </div>
+ <div>
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-zinc-400 font-medium">Punteggio Staticità</span>
+            <span className="font-mono font-bold text-emerald-400">
+              {match.liveness_static_variance.toFixed(2)}%{" "}
+            </span>
+          </div>
+          <ProgressBar
+            value={match.liveness_static_variance}
+            color="success"
+            size="sm"
+            aria-label="Staticità score"
+          >
+            <ProgressBar.Track className="bg-zinc-800 h-2 rounded-full">
+              <ProgressBar.Fill className="rounded-full bg-emerald-500" />
+            </ProgressBar.Track>
+          </ProgressBar>
+        </div>
+        
+       
 
         {/* Distribuzione Probabilità Anti-Spoofing (MiniFASNet) */}
         <div className="grid grid-cols-3 gap-2 pt-1 text-center">
@@ -269,12 +307,11 @@ export function ResultCards({ result, isScanning, onOpenRegister }: ResultCardsP
           </div>
 
           <div className="p-2 rounded-md bg-zinc-800/30 border border-zinc-800 flex flex-col">
-            <span className="text-zinc-400 text-[10px]">Embedding Live Score</span>
+            <span className="text-zinc-400 text-[10px]">Detector DET Score</span>
             <span className="font-mono font-bold text-zinc-100">
               {match.embedding_score.toFixed(3)}
             </span>
           </div>
-
           {user?.score !== undefined && (
             <div className="p-2 rounded-md bg-zinc-800/30 border border-zinc-800 flex flex-col col-span-2 sm:col-span-1">
               <span className="text-zinc-400 text-[10px]">Qualità Foto CIE</span>
