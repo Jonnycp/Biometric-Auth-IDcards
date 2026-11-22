@@ -4,7 +4,7 @@ import numpy as np
 
 # Inizializza FaceRecognition (ctx_id = -1 -> CPU)
 def initFaceRecognition(model: str = "buffalo_l", det_size: tuple[int, int] = (320, 320)) -> FaceAnalysis:
-    app = FaceAnalysis(name=model, root="../.insightface", allowed_modules=['detection', 'recognition'])
+    app = FaceAnalysis(name=model, root="backend/.insightface", allowed_modules=['detection', 'recognition'])
     app.prepare(ctx_id=-1, det_size=det_size)
     return app
 
@@ -52,6 +52,7 @@ def cropFace(image: np.ndarray, bbox: np.ndarray, margin_perc: int = 0):
 
 def pipelineFaceDetection(detector: FaceAnalysis, image: np.ndarray):
     faces = getFaces(detector, image)
+    #print(faces[0].kps[0][0] - faces[0].kps[1][0] if faces else "No faces detected")
     mainFace = getMainFace(faces)
     if mainFace is None:
         return None, image
