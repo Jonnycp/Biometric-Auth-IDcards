@@ -44,4 +44,4 @@ export function getWsLoginUrl(): string {
 
 export const API_BASE_URL = getApiBaseUrl();
 export const WS_LOGIN_URL = getWsLoginUrl();
-export const TOTAL_LIVENESS_FRAMES = 45;
+export const FRAME_INTERVAL_MS = 40; // intervallo minimo 25 FPS

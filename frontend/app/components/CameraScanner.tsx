@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Button, ProgressBar } from "@heroui/react";
 import { Icon } from "@iconify/react";
-import { getWsLoginUrl } from "../config";
+import { getWsLoginUrl, FRAME_INTERVAL_MS } from "../config";
 import type { LoginWSMessage } from "../types/auth";
 import { FaceMaskOverlay } from "./FaceMaskOverlay";
 
@@ -134,7 +134,7 @@ export function CameraScanner({ onResult, onScanStateChange }: CameraScannerProp
         console.log("[CameraScanner] WebSocket connesso!");
         setStatusHint("Guarda la camera e muovi delicatamente la testa...");
 
-        // Invio fotogrammi (~100ms)
+        // Invio fotogrammi (al massimo uno ogni FRAME_INTERVAL_MS)
         intervalRef.current = window.setInterval(() => {
           if (
             isScanCompletedRef.current ||
@@ -200,7 +200,7 @@ export function CameraScanner({ onResult, onScanStateChange }: CameraScannerProp
             "image/jpeg",
             0.88
           );
-        }, 100);
+        }, FRAME_INTERVAL_MS);
       };
 
       ws.onmessage = (event) => {
