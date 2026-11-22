@@ -6,7 +6,7 @@ import os
 
 from backend.core.id_card import decodeImage
 from backend.core.face_detector import pipelineFaceDetection
-from backend.core.face_recognizer import extractEmbeddings
+from backend.core.face_recognizer import computeEmbedding
 from backend.core.liveness import checkLiveness
 from backend.api.register import MAX_FILE_SIZE, ALLOWED_FORMATS
 from backend.database.user_controller import searchUser_byEmbedding
@@ -47,7 +47,7 @@ async def ws_loginUser(websocket: WebSocket):
                 continue
 
             # 3. Face detection
-            face, cropped_face = pipelineFaceDetection(recognizer, image)
+            face, cropped_face = pipelineFaceDetection(recognizer, image, det_only=True)
             if face is None:
                 liveness_scores.clear()
                 best_frame = None
@@ -117,7 +117,10 @@ async def ws_loginUser(websocket: WebSocket):
                     continue
                 
                 # 5. Cerca in db
-                best_embedding, _ = extractEmbeddings(best_face)
+                if best_frame is None or best_face is None:
+                    await websocket.send_json({"status": "ERROR", "message": "Nessun volto valido trovato."})
+                    continue
+                best_embedding, _ = computeEmbedding(recognizer, best_frame, best_face)
                 best_frame = None
                 best_face = None
                 if best_embedding is None:
