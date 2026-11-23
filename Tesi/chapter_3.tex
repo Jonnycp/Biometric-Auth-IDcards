@@ -469,7 +469,7 @@ Come riportato nella Tabella~\ref{tab:minifasnet}, \textit{MiniFASNetV2} è una 
     \label{tab:minifasnet}
 \end{table}
 Il progetto originale~\cite{MinivisionaiSilentFaceAntiSpoofing} prevede l'uso combinato di più modelli addestrati su diverse scale di ritaglio del volto, sommandone le probabilità in uscita per classificare il soggetto come reale~\cite{MinivisionaiSilentFaceAntiSpoofing}. 
-L'integrazione con il secondo modello della suite (addestrato a scala $4{,}0$) non è stata inclusa per contenere i tempi di inferenza e viene discussa tra i limiti nel Capitolo~\ref{cap:conclusioni}.
+L'integrazione con il secondo modello della suite (addestrato a scala $4{,}0$) non è stata inclusa per contenere i tempi di inferenza e viene discussa tra i limiti nel Capitolo~\ref{cap:4.4-limiti}.
 
 \paragraph{Caricamento della sessione di inferenza.}
 La funzione \texttt{loadLivenessModel} (Listato~\ref{lst:livenessModel}) verifica che il file indicato da \texttt{LIVENESS\_MODEL\_PATH} esista, sollevando un errore esplicito in caso contrario, e crea una \texttt{InferenceSession}.
@@ -631,12 +631,17 @@ while True:
     if not live["is_live"]:
         spoof_count += 1
 
-    motion = calculateKpsVariance(kps_history)
-    if avg < LIVENESS_THRESHOLD or motion <= STATIC_THRESHOLD:
-        ...             # SPOOF_ATTACK (PRINT/SCREEN o STATIC_FACE)
+    if len(liveness_scores) < N:
+        if spoof_count > M: 
+            ...           # SPOOF_ATTACK anticipato
+        else: 
+            ...           # WAITING_LIVENESS
     else:
         avg = sum(liveness_scores) / len(liveness_scores)
-        if avg < LIVENESS_THRESHOLD: ...       # SPOOF_ATTACK
+        motion = calculateKpsVariance(kps_history)
+        if avg < LIVENESS_THRESHOLD or motion <= STATIC_THRESHOLD:
+            ...           # SPOOF_ATTACK (PRINT/SCREEN o STATIC_FACE)
+        
         emb, _ = computeEmbedding(recognizer, best_frame, best_face)
         result = searchUser_byEmbedding(emb, SIMILARITY_THRESHOLD)
         await websocket.send_json(payload(result))# MATCH / NO_MATCH

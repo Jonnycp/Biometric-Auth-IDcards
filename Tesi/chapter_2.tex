@@ -304,7 +304,7 @@ La Tabella~\ref{tab:statiFSM} riassume formalmente gli stati della \gls{fsm} pro
         \hline
         $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land (\bar{L} < \tau_{\text{liveness}} \lor \sigma_{\text{kps}} > \tau_{\text{static}})$ & $s_2$: \texttt{SPOOF\_ATTACK} \\
         \hline
-        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land \bar{L} \ge \tau_{\text{liveness}} \land \sigma_{\text{kps}}^2 \in [\sigma_{\min}^2, \sigma_{\max}^2] \land S_c(e_{\text{live}}, e_{\text{ID}}) \ge \tau$ & $s_3$: \texttt{MATCH} \\
+        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land \bar{L} \ge \tau_{\text{liveness}} \land \sigma_{\text{kps}} > \tau_{\text{static}} \land S_c(e_{\text{live}}, e_{\text{ID}}) \ge \tau$ & $s_3$: \texttt{MATCH} \\
         \hline
         $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land \bar{L} \ge \tau_{\text{liveness}} \land \sigma_{\text{kps}}^2 \in [\sigma_{\min}^2, \sigma_{\max}^2] \land S_c(e_{\text{live}}, e_{\text{ID}}) < \tau$ & $s_3$: \texttt{NO\_MATCH} \\
         \hline
@@ -340,7 +340,7 @@ E di conseguenza, il tempo computazionale complessivo $T_{\text{buffer}}$ richie
     \label{eq:latenzaTotaleBuffer}
     T_{\text{buffer}} = \sum_{t=1}^{N} \left( T_{\text{det}, t} + T_{\text{pad}, t} \right) + T_{\text{emb}}(f_{\text{best}}) + T_{\text{db}}\\ \approx N \cdot (\bar{T}_{\text{det}} + \bar{T}_{\text{pad}}) + T_{\text{emb}} + T_{\text{db}}
 \end{equation}
-Abbattendo in questo modo la complessità delle operazioni più onerose ($T_{\text{emb}}$ e $T_{\text{db}}$) da $\mathcal{O}(N)$ a $\mathcal{O}(1)$ per sessione di login. L'architettura riesce a mantenere il frame rate di acquisizione fluido ($\sim 20{-}30~\text{fps}$) e restituisce il verdetto di autenticazione entro una finestra sub-secondo dal completamento del buffer video.
+Abbattendo in questo modo la complessità delle operazioni più onerose ($T_{\text{emb}}$ e $T_{\text{db}}$) da $\mathcal{O}(N)$ a $\mathcal{O}(1)$ per sessione di login. L'architettura riesce a mantenere il frame rate di acquisizione fluido fino a 25 fps e restituisce il verdetto di autenticazione entro una finestra sub-secondo dal completamento del buffer video.
 %TODO: in caso di connessioni instabili (mobile)
 
 % Pipeline di enrollment e di verifica; Specifica formale della FSM di sessione
