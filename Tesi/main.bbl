@@ -1,12 +1,195 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
-\bibitem{id1}
-G.~Bianchi e G.~Verdi M.~Rossi.
-\newblock Titolo dell'articolo.
-\newblock {\em Journal Name}, pages 10--15, 2018.
+\bibitem{benalcazarSyntheticIDCard2023}
+Daniel Benalcazar, Juan~E. Tapia, Sebastian Gonzalez, and Christoph Busch.
+\newblock Synthetic {{ID Card Image Generation}} for {{Improving Presentation Attack Detection}}.
+\newblock 18:1814--1824.
 
-\bibitem{id2}
-Politecnico di bari [online].
-\newblock \url{https://www.poliba.it/}.
+\bibitem{azizFaceRecognitionBase2024}
+Mohammad~Fauzi Aziz, Gavin~Sadiya Taraka, and Sidharta Sidharta.
+\newblock Face {{Recognition}} as {{Base Protocol}} in {{Online Transactions}}.
+\newblock 245:166--175.
+
+\bibitem{kelesRepublicTurkeyIdentity2020}
+Mehmet~Kıvılcım Keleş and Şenay Demirel.
+\newblock Republic of {{Turkey Identity Card}} ({{TCKK}}): {{Banking Use Case}} in {{Authentication}} \& {{Customer Onboarding}}.
+\newblock In {\em Proceedings of the 2020 6th {{International Conference}} on {{Computer}} and {{Technology Applications}}}, {{ICCTA}} '20, pages 35--40. Association for Computing Machinery.
+
+\bibitem{shiDocFaceMatchingID2018}
+Yichun Shi and Anil~K. Jain.
+\newblock {{DocFace}}: {{Matching ID Document Photos}} to {{Selfies}}.
+
+\bibitem{sanzGoverningPrivacyPreservingFace2026}
+Eva María~Benito Sanz, Alba Gonzalo~Primo, Gaurav Choudhary, and Nicola Dragoni.
+\newblock Governing {{Privacy-Preserving Face Recognition}} in {{Transport Infrastructures}}: {{A Comprehensive Review}}.
+\newblock 26(9):2832.
+
+\bibitem{georgeLightweightCrossSpectralFace2026}
+Anjith George and Sebastien Marcel.
+\newblock Lightweight {{Cross-Spectral Face Recognition}} via {{Contrastive Alignment}} and {{Distillation}}.
+
+\bibitem{dengArcFaceAdditiveAngular2022}
+Jiankang Deng, Jia Guo, Jing Yang, Niannan Xue, Irene Kotsia, and Stefanos Zafeiriou.
+\newblock {{ArcFace}}: {{Additive Angular Margin Loss}} for {{Deep Face Recognition}}.
+\newblock 44(10):5962--5979.
+
+\bibitem{kimAdaFaceQualityAdaptive2023}
+Minchul Kim, Anil~K. Jain, and Xiaoming Liu.
+\newblock {{AdaFace}}: {{Quality Adaptive Margin}} for {{Face Recognition}}.
+
+\bibitem{gonzalezForgedPresentationAttack2025}
+Sebastian Gonzalez and Juan~E. Tapia.
+\newblock Forged presentation attack detection for {{ID}} cards on remote verification systems.
+\newblock 162:111352.
+
+\bibitem{otroshishahrezaBenchmarkingCancelableBiometrics2022}
+Hatef Otroshi~Shahreza, Pietro Melzi, Dailé Osorio-Roig, Christian Rathgeb, Christoph Busch, Sébastien Marcel, Ruben Tolosana, and given-i={{Ru}} family=Vera Rodriguez, given=Ruben.
+\newblock Benchmarking of {{Cancelable Biometrics}} for {{Deep Templates}}.
+
+\bibitem{liSilentFaceAntiSpoofing2024}
+Lan Li, Hongzhe Dou, Zijia Yu, Xujuan Zhang, Lijuan Sun, and Jundi Wang.
+\newblock Silent {{Face Anti-Spoofing Detection Algorithm Based}} on {{Meta}}-learning and {{Attention Mechanism}}.
+\newblock In {\em 2024 {{International Conference}} on {{Advances}} in {{Electrical Engineering}} and {{Computer Applications}} ({{AEECA}})}, pages 394--398.
+
+\bibitem{rezaRealizationContrastLimited2004}
+Ali~M. Reza.
+\newblock Realization of the {{Contrast Limited Adaptive Histogram Equalization}} ({{CLAHE}}) for {{Real-Time Image Enhancement}}.
+\newblock 38(1):35--44.
+
+\bibitem{sawetsutipunFacialImageVerification2020a}
+Srirath Sawetsutipun, Thananop Kobchaisawat, and Thanarat~H. Chalidabhongse.
+\newblock Facial {{Image Verification}} for {{Government Kiosk System}}.
+\newblock In {\em 2020 17th {{International Joint Conference}} on {{Computer Science}} and {{Software Engineering}} ({{JCSSE}})}, pages 65--70.
+
+\bibitem{github-insightface}
+Jia Guo and Jiankang Deng.
+\newblock Deepinsight/insightface: {{State}}-of-the-art {{2D}} and {{3D Face Analysis Project}}.
+
+\bibitem{hassanpourLightweightFaceRecognition2023}
+Ahmad Hassanpour and Yasamin Kowsari.
+\newblock Lightweight {{Face Recognition}}: {{An Improved MobileFaceNet Model}}.
+
+\bibitem{georgeEdgeFaceEfficientFace2024}
+Anjith George, Christophe Ecabert, Hatef~Otroshi Shahreza, Ketan Kotwal, and Sébastien Marcel.
+\newblock {{EdgeFace}}: {{Efficient Face Recognition Model}} for {{Edge Devices}}.
+\newblock 6(2):158--168.
+
+\bibitem{groupBiometricLivenessPresentation}
+NHI~Mgmt Group.
+\newblock Biometric {{Liveness}} and {{Presentation Attack Detection Guide}}: {{Read APCER}}, {{BPCER}} and {{IAPAR Correctly}}.
+
+\bibitem{icao9303}
+{International Civil Aviation Organization}.
+\newblock Machine {{Readable Travel Documents}}: {{Passports}} with {{Machine Readable Data Stored}} in {{Optical Character Recognition Format}}.
+
+\bibitem{yanezImageQualityAssessment2021a}
+Claudio Yáñez and Juan Tapia.
+\newblock Image {{Quality Assessment}} on {{Identity Documents}}.
+\newblock In {\em 2021 {{International Conference}} of the {{Biometrics Special Interest Group}} ({{BIOSIG}})}, pages 1--5.
+
+\bibitem{REGOLAMENTOUE2016}
+Regolamento (ue) 2016/ 679 del parlamento europeo e del consiglio - del 27 aprile 2016 - relativo alla protezione delle persone fisiche con riguardo al trattamento dei dati personali, nonché alla libera circolazione di tali dati e che abroga la direttiva 95/ 46/ ce (regolamento generale sulla protezione dei dati).
+
+\bibitem{fangIDCardIdentification2017}
+Xuwei Fang, Xiaowei Fu, and Xin Xu.
+\newblock {{ID}} card identification system based on image recognition.
+\newblock In {\em 2017 12th {{IEEE Conference}} on {{Industrial Electronics}} and {{Applications}} ({{ICIEA}})}, pages 1488--1492.
+
+\bibitem{caldeiraImpactFaceSegmentationBased2026}
+Eduarda Caldeira, Guray Ozgur, Fadi Boutros, and Naser Damer.
+\newblock On the {{Impact}} of {{Face Segmentation-Based Background Removal}} on {{Recognition}} and {{Morphing Attack Detection}}.
+
+\bibitem{groteImageQualityAssessment2026}
+Gregor Grote, Juan~E. Tapia, and Christian Rathgeb.
+\newblock Image {{Quality Assessment}} of {{Identity Cards Using Measures}} from {{Open Face Image Quality}}.
+\newblock In {\em 2026 14th {{International Workshop}} on {{Biometrics}} and {{Forensics}} ({{IWBF}})}, pages 1--6.
+
+\bibitem{malkovEfficientRobustApproximate2018}
+Yu~A. Malkov and D.~A. Yashunin.
+\newblock Efficient and robust approximate nearest neighbor search using {{Hierarchical Navigable Small World}} graphs.
+
+\bibitem{tomasiBilateralFilteringGray1998}
+C.~Tomasi and R.~Manduchi.
+\newblock Bilateral filtering for gray and color images.
+\newblock In {\em Sixth {{International Conference}} on {{Computer Vision}} ({{IEEE Cat}}. {{No}}.{{98CH36271}})}, pages 839--846. Narosa Publishing House.
+
+\bibitem{sommerville2015software}
+Ian Sommerville.
+\newblock {\em Software Engineering}.
+\newblock Pearson, 10 edition.
+
+\bibitem{hopcroftIntroductionAutomataTheory2007a}
+John~E. Hopcroft, Rajeev Motwani, and Jeffrey~D. Ullman.
+\newblock {\em Introduction to Automata Theory, Languages, and Computation}.
+\newblock Pearson/Addison Wesley, 3rd ed edition.
+
+\bibitem{panSurveyVectorDatabase2023}
+James~Jie Pan, Jianguo Wang, and Guoliang Li.
+\newblock Survey of {{Vector Database Management Systems}}.
+
+\bibitem{abtahiHNSWInformationTheoreticBinarization2025}
+Seyed~Moein Abtahi, Majid Fekri, Tara Khani, and Akramul Azim.
+\newblock From {{HNSW}} to {{Information-Theoretic Binarization}}: {{Rethinking}} the {{Architecture}} of {{Scalable Vector Search}}.
+
+\bibitem{mongoNoSQL}
+Lauren Shhaefer.
+\newblock Che cos'è nosql? spiegazione dei database nosql.
+
+\bibitem{MongoDBVectorSearch}
+{{MongoDB Vector Search Overview}} - {{MongoDB Vector Search}} - {{MongoDB Docs}}.
+
+\bibitem{osorio-roigPrivacypreservingMultibiometricIndexing2023}
+Daile Osorio-Roig, Lazaro~J. Gonzalez-Soler, Christian Rathgeb, and Christoph Busch.
+\newblock Privacy-preserving {{Multi}}-biometric {{Indexing}} based on {{Frequent Binary Patterns}}.
+
+\bibitem{SpecificationsASGI30}
+{ASGI Team}.
+\newblock Specifications — {{ASGI}} 3.0 documentation.
+
+\bibitem{corsWebDev}
+{Web.dev Team}.
+\newblock Condivisione delle risorse tra origini (cors) | articles.
+
+\bibitem{thongkorDigitalImageWatermarking2012a}
+Kharittha Thongkor and Thumrongrat Amornraksa.
+\newblock Digital image watermarking for photo authentication in {{Thai}} national {{ID}} card.
+\newblock In {\em 2012 9th {{International Conference}} on {{Electrical Engineering}}/{{Electronics}}, {{Computer}}, {{Telecommunications}} and {{Information Technology}}}, pages 1--4.
+
+\bibitem{OpenCV-docs}
+{OpenCV Team}.
+\newblock {{OpenCV}} modules and documentation.
+
+\bibitem{guoSampleComputationRedistribution2021}
+Jia Guo, Jiankang Deng, Alexandros Lattas, and Stefanos Zafeiriou.
+\newblock Sample and {{Computation Redistribution}} for {{Efficient Face Detection}}.
+
+\bibitem{ONNXRuntime}
+{ONNX Contributors} and {Microsoft}.
+\newblock {{ONNX Runtime}}.
+
+\bibitem{MinivisionaiSilentFaceAntiSpoofing}
+{Minivision Technology}.
+\newblock Minivision-ai/{{Silent-Face-Anti-Spoofing}}.
+
+\bibitem{LifespanEventsFastAPI}
+Lifespan {{Events}} - {{FastAPI}}.
+
+\bibitem{MediaDevicesGetUserMediaMethod2025}
+{{MediaDevices}}: {{getUserMedia}}() method - {{Web APIs}} | {{MDN}}.
+
+\bibitem{RealtimeBiometricAutthentication}
+A~Muhammad.
+\newblock Real-time {{Biometric Autthentication}} on {{Edge Devices Using AI}}.
+
+\bibitem{ismayilovFLUXSynIDFrameworkIdentityControlled2025}
+Raul Ismayilov, Dzemila Sero, and Luuk Spreeuwers.
+\newblock {{FLUXSynID}}: {{A Framework}} for {{Identity-Controlled Synthetic Face Generation}} with {{Document}} and {{Live Images}}.
+
+\bibitem{CoreMLApple}
+Core {{ML}} | {{Apple Developer Documentation}}.
+
+\bibitem{albieroIdentityDocumentSelfie2019a}
+Vítor Albiero, Nisha Srinivas, Esteban Villalobos, Jorge Perez-Facuse, Roberto Rosenthal, Domingo Mery, Karl Ricanek, and Kevin~W. Bowyer.
+\newblock Identity {{Document}} to {{Selfie Face Matching Across Adolescence}}.
 
 \end{thebibliography}
