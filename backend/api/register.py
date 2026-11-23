@@ -38,7 +38,7 @@ async def registerUser(req: Request,
     # 4. Controllo esistenza utente
     existing_user = searchUser_byEmbedding(embedding, SIMILARITY_THRESHOLD)
     if existing_user.isMatch:
-        raise HTTPException(status_code=400, detail="Indentità biometrica già registrata.")
+        raise HTTPException(status_code=409, detail="Indentità biometrica già registrata.")
     
     # 5. Salvataggio in db
     user = User(
