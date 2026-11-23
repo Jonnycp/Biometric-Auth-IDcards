@@ -5,7 +5,7 @@ import numpy as np
 # Inizializza FaceRecognition (ctx_id = -1 -> CPU)
 def initFaceRecognition(model: str = "buffalo_l", det_size: tuple[int, int] = (320, 320)) -> FaceAnalysis:
     app = FaceAnalysis(name=model, root="backend/.insightface", allowed_modules=['detection', 'recognition'], providers = ['CoreMLExecutionProvider', 'CPUExecutionProvider'])
-    app.prepare(ctx_id=-1, det_size=det_size)
+    app.prepare(ctx_id=0, det_size=det_size)
     return app
 
 # Estrae facce immagine
