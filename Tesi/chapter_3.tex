@@ -74,7 +74,7 @@ Il \textbf{backend} è suddiviso in tre \textit{package} Python, ciascuno corris
     \end{itemize}
 \end{itemize}
 Il file \texttt{main.py} costituisce il punto d'ingresso dell'applicazione: istanzia il server, configura la politica \textit{CORS} e monta il \textit{router} sotto il prefisso \texttt{/api}. 
-Invece il caricamento dei modelli neurali all'avvio è invece trattato nel Capitolo~\ref{cap:3.3-orchestrazione}.\quad
+Invece il caricamento dei modelli neurali all'avvio è trattato nel Capitolo~\ref{cap:3.3-orchestrazione}.\quad
 Il \textbf{frontend} segue la convenzione del \textit{framework} \textbf{React Router}:
 \begin{itemize}
     \item le pagine sono divise nella cartella (\texttt{routes/}), 
@@ -145,7 +145,7 @@ La Tabella~\ref{tab:env} riporta le variabili del backend con i valori di riferi
         \texttt{LIVENESS\_MODEL\_PATH} & \texttt{backend/} \texttt{minifasnet\_v2.onnx} & Percorso del modello \gls{onnx} di \textit{MiniFASNet}\footnotemark \\
         \hline
         \multicolumn{3}{@{}l}{\textit{Soglie e parametri decisionali}} \\
-        \texttt{SIMILARITY\_THRESHOLD} & $0{,}35$ & Soglia $\tau$ sulla similarità coseno per l'accettazione del \textit{match} \\
+        \texttt{SIMILARITY\_THRESHOLD} & $0{,}33$ & Soglia $\tau$ sulla similarità coseno per l'accettazione del \textit{match} \\
         \texttt{LIVENESS\_THRESHOLD} & $0{,}6$ & Soglia $\tau_{\text{liveness}}$ sullo score medio di vitalità \\
         \texttt{FRAMES\_LIVENESS} & $35$ & Dimensione $N$ del buffer temporale di fotogrammi \\
         \texttt{MAX\_SPOOF\_ATTACKS} & $7$ & Numero massimo $M$ di fotogrammi segnalati come \gls{pa} per interrompere anticipatamente la sessione \\
@@ -173,7 +173,7 @@ Le variabili si suddividono in tre gruppi:
     \item \texttt{STATIC\_THRESHOLD} è la soglia $\tau_{\text{static}}$ del criterio~\eqref{eq:criterioLivenessBuffer}
     \item \texttt{SIMILARITY\_THRESHOLD} è la soglia $\tau$ della regola decisionale del Capitolo~\ref{cap:1-fondamenti} per l'accettazione del \textit{match}
     \end{itemize}
-È importante osservare che \texttt{SIMILARITY\_THRESHOLD} viene confrontata con la similarità coseno ricalcolata dal backend tra l'embedding della query e quello del candidato restituito dall'indice, e non con il punteggio riscalato in $[0,1]$ prodotto da \textit{Atlas} secondo l'Equazione~\eqref{eq:scoreAtlas}. Quindi il valore $0{,}35$ è direttamente confrontabile con la soglia $\tau$ della regola decisionale del Capitolo~\ref{cap:1-fondamenti}.
+È importante osservare che \texttt{SIMILARITY\_THRESHOLD} viene confrontata con la similarità coseno ricalcolata dal backend tra l'embedding della query e quello del candidato restituito dall'indice, e non con il punteggio riscalato in $[0,1]$ prodotto da \textit{Atlas} secondo l'Equazione~\eqref{eq:scoreAtlas}. Quindi il valore $0{,}33$ è direttamente confrontabile con la soglia $\tau$ della regola decisionale del Capitolo~\ref{cap:1-fondamenti}.
 \item Le variabili di \textbf{infrastruttura} che definiscono la connessione al database e gli indirizzi dei due servizi.
 \end{itemize}
 
@@ -246,7 +246,7 @@ return edged, None
         Angoli interni & $[55^\circ;\ 125^\circ]$ & Plausibilità di un rettangolo visto in prospettiva \\
         \hline
     \end{tabular*}
-    \caption{Criteri di validazione del quadrilatero candidato in \texttt{isValidCardQuad}. Le tolleranze sono ampie perché la prospettiva deforma il rettangolo della tessera.}
+    \caption[Criteri di validazione del quadrilatero in \texttt{isValidCardQuad}]{Criteri di validazione del quadrilatero candidato in \texttt{isValidCardQuad}. Le tolleranze sono ampie perché la prospettiva deforma il rettangolo della tessera.}
     \label{tab:validazioneQuadrilatero}
 \end{table}
 Se nessun candidato supera la validazione in nessuno dei due tentativi, la funzione restituisce l'immagine originale con l'indicatore \texttt{False}: la pipeline prosegue \textbf{senza rettifica} anziché rifiutare la registrazione.
@@ -319,7 +319,7 @@ Eseguendo l'equalizzazione dopo la rettifica, gli istogrammi locali vengono calc
 Se invece la rettifica non riesce, \gls{clahe} viene comunque applicato all'immagine originale, poiché migliora la leggibilità del volto indipendentemente dalla geometria.
 Gli indicatori sono restituiti al client nei campi \texttt{fixProspective} e \texttt{fixContrast} del contratto di risposta all'\textit{enrollment} (Capitolo~\ref{cap:2.4.2-modelloDati}), così che l'interfaccia possa segnalare se il documento è stato raddrizzato.
 L'immagine così normalizzata viene infine consegnata alla stessa funzione di rilevamento della \textit{live verification} (Capitolo~\ref{cap:3.2.2-faceAnalysis}).
-La volto del documento e il volto ripreso dalla fotocamera seguono quindi un unico percorso di allineamento ed estrazione, condizione necessaria affinchè i due embedding siano confrontabili.
+Il volto del documento e il volto ripreso dalla fotocamera seguono quindi un unico percorso di allineamento ed estrazione, condizione necessaria affinchè i due embedding siano confrontabili.
 
 \subsection{Rilevamento, allineamento ed estrazione con InsightFace}\label{cap:3.2.2-faceAnalysis}
 Il confronto tra il ritratto della \gls{cie} e il volto ripreso dalla fotocamera ha senso solo se le due immagini attraversano lo stesso percorso di elaborazione. 
@@ -345,18 +345,18 @@ Il pacchetto contiene cinque grafi distinti, riportati nella Tabella~\ref{tab:bu
         \texttt{genderage.onnx} & Attributi & Stima di genere ed età & No \\
         \hline
     \end{tabular*}
-    \caption{Composizione del pacchetto \texttt{buffalo\_l} di \textit{InsightFace} e moduli effettivamente caricati dal sistema~\cite{github-insightface}.}
+    \caption[Composizione del pacchetto \texttt{buffalo\_l} di \textit{InsightFace}]{Composizione del pacchetto \texttt{buffalo\_l} di \textit{InsightFace} e moduli effettivamente caricati dal sistema~\cite{github-insightface}.}
     \label{tab:buffaloL}
 \end{table}
 L'inizializzazione, riportata nel Listato~\ref{lst:initFaceRecognition}, avviene una sola volta all'avvio del server (Capitolo~\ref{cap:3.3-orchestrazione}).
-Il valore \texttt{ctx\_id=-1} forza l'esecuzione su CPU, per il \textit{deployment} senza acceleratori grafici.
+Il valore \texttt{ctx\_id=0} abilita l'accelerazione hardware quando è disponibile e ricate sulla CPU in caso contrario.
 
 \begin{lstlisting}[float=h, language=Python, caption={Inizializzazione del modulo di analisi facciale (\texttt{core/face\_detector.py}).}, label={lst:initFaceRecognition}]
 def initFaceRecognition(model: str = "buffalo_l",
                         det_size: tuple[int, int] = (320, 320)) -> FaceAnalysis:
     app = FaceAnalysis(name=model, root="../.insightface",
                        allowed_modules=['detection', 'recognition'])
-    app.prepare(ctx_id=-1, det_size=det_size)
+    app.prepare(ctx_id=0, det_size=det_size)
     return app
 \end{lstlisting}
 
@@ -394,9 +394,10 @@ def getMainFace(faces: list):
     return max(faces, key=lambda face:
                (face.bbox[2]-face.bbox[0]) * (face.bbox[3]-face.bbox[1]))
 
-def pipelineFaceDetection(detector: FaceAnalysis, image: np.ndarray):
+def pipelineFaceDetection(detector: FaceAnalysis, image: np.ndarray, det_only= False):
     faces = getFaces(detector, image)
     mainFace = getMainFace(faces)
+    ...
     if mainFace is None:
         return None, image
     return mainFace
@@ -417,7 +418,7 @@ La funzione \texttt{extractEmbeddings} nel Listato~\ref{lst:verifyIdentity} estr
 \gls{arcface} distribuisce i vettori su un'ipersfera, come descritto nel Capitolo~\ref{cap:1-fondamenti}.
 Il confronto, quindi, avviene tramite la similarità coseno dell'Equazione~\eqref{eq:cosineSimilarity}.
 L'implementazione, riportata nel Listato~\ref{lst:verifyIdentity}, calcola il rapporto tra il prodotto scalare dei due vettori e il prodotto delle rispettive norme.
-Poichè i vettori in ingresso non sono normalizzati, restituisce $0$ quando uno dei due vettori manca o ha norma nulla, evitando una divisione per zero.
+Poichè i vettori in ingresso non sono normalizzati, la funzione divide il prodotto scalare per le due norme e restituisce $0$ quando uno dei due vettori manca o ha norma nulla, evitando una divisione per zero.
 
 \begin{lstlisting}[float=htbp, language=Python, caption={Estrazione dell'embedding e verifica tramite similarit\`a coseno (\texttt{core/face\_recognizer.py})}, label={lst:verifyIdentity}]
 def extractEmbeddings(face):
@@ -465,7 +466,7 @@ Come riportato nella Tabella~\ref{tab:minifasnet}, \textit{MiniFASNetV2} è una 
         MiniFASNetV2 & 0,081 & 0,435 \\
         \hline
     \end{tabular*}
-    \caption{Costo computazionale delle reti del progetto \textit{Silent-Face-Anti-Spoofing}~\cite{MinivisionaiSilentFaceAntiSpoofing}.}
+    \caption[Costo computazionale delle reti del progetto \textit{Silent-Face-Anti-Spoofing}]{Costo computazionale delle reti del progetto \textit{Silent-Face-Anti-Spoofing}~\cite{MinivisionaiSilentFaceAntiSpoofing}.}
     \label{tab:minifasnet}
 \end{table}
 Il progetto originale~\cite{MinivisionaiSilentFaceAntiSpoofing} prevede l'uso combinato di più modelli addestrati su diverse scale di ritaglio del volto, sommandone le probabilità in uscita per classificare il soggetto come reale~\cite{MinivisionaiSilentFaceAntiSpoofing}. 
@@ -498,7 +499,7 @@ Il ritaglio è infine ridimensionato a $80 \times 80$ pixel, la dimensione di in
 
 \paragraph{Inferenza e normalizzazione delle uscite}
 La funzione \texttt{predictLiveness} (Listato~\ref{lst:predictLiveness}) prepara il ritaglio per il modello trasformandolo in un tensore \texttt{float32} di dimensione $(1, 3, 80, 80)$. 
-L'operazione riorganizza gli assi dal formato \textit{OpenCV} (altezza, larghezza, canali: HWC) a quello richiesto dalle reti \textit{PyTorch} (canali, altezza, larghezza: CHW), aggiungendo infine la dimensione del \textit{batch} (un immagine alla volta).
+L'operazione riorganizza gli assi dal formato \textit{OpenCV} (altezza, larghezza, canali: HWC) a quello richiesto dalle reti \textit{PyTorch} (canali, altezza, larghezza: CHW), aggiungendo infine la dimensione del \textit{batch} (un'immagine alla volta).
 Come nel progetto originale~\cite{MinivisionaiSilentFaceAntiSpoofing}, i canali restano nell'ordine BGR (Blu-Verde-Rosso)\footnote{Gli autori hanno addestrato il modello con questa scala non normalizzata, quindi alterarla falserebbe la distribuzione degli ingressi, rendendo inaffidabili le predizioni del modello.} e i valori dei pixel vengono mantenuti nell'intervallo $[0, 255]$ senza normalizzazione.
 
 \begin{lstlisting}[float=htbp, language=Python, caption={Inferenza di \textit{MiniFASNetV2} e softmax numericamente stabile (\texttt{core/liveness.py}).}, label={lst:predictLiveness}]
@@ -641,7 +642,7 @@ while True:
         motion = calculateKpsVariance(kps_history)
         if avg < LIVENESS_THRESHOLD or motion <= STATIC_THRESHOLD:
             ...           # SPOOF_ATTACK (PRINT/SCREEN o STATIC_FACE)
-        
+
         emb, _ = computeEmbedding(recognizer, best_frame, best_face)
         result = searchUser_byEmbedding(emb, SIMILARITY_THRESHOLD)
         await websocket.send_json(payload(result))# MATCH / NO_MATCH

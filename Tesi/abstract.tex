@@ -1,8 +1,10 @@
 \chapter*{\scshape{Abstract}}
-Questa tesi...
+Questa tesi presenta la progettazione e la validazione sperimentale di un sistema client-server per l'\textbf{autenticazione biometrica} in tempo reale, che confronta il volto ripreso dalla fotocamera con la fototessera della \textit{Carta d'Identità Elettronica}, rettificata e normalizzata.
+La presenza fisica dell'utente è verificata da una \textbf{liveness detection} passiva su un buffer di fotogrammi e da un controllo di staticità, mentre gli embedding facciali sono confrontati tramite \textbf{similarità coseno} in un database vettoriale, senza conservare immagini.
+Su registrazioni reali, il sistema raggiunge un EER del 4,8\% con circa 14~ms di elaborazione per fotogramma.
 
 
 
-Progettazione di una pipeline edge-computing per l’autenticazione biometrica basata su face verification e liveness detection in tempo reale.
-Il sistema acquisisce un breve stream video dalla fotocamera per validare la presenza fisica dell’utente (anti-spoofing) ed effettua l’estrazione e il confronto di feature map facciali profonde (deep face embeddings) mediante reti neurali.
-La verifica dell’identità opera tramite cosine-similarity confrontando il volto live con le immagini di riferimento estratte da carte d’identità, affrontando problematiche ingegneristiche di low-resolution, rumore da scansione e age-gap, con un focus prioritario su minimizzazione della latenza, footprint computazionale ridotto e alta accuratezza di classificazione. 
+% Progettazione di una pipeline edge-computing per l’autenticazione biometrica basata su face verification e liveness detection in tempo reale.
+% Il sistema acquisisce un breve stream video dalla fotocamera per validare la presenza fisica dell’utente (anti-spoofing) ed effettua l’estrazione e il confronto di feature map facciali profonde (deep face embeddings) mediante reti neurali.
+% La verifica dell’identità opera tramite cosine-similarity confrontando il volto live con le immagini di riferimento estratte da carte d’identità, affrontando problematiche ingegneristiche di low-resolution, rumore da scansione e age-gap, con un focus prioritario su minimizzazione della latenza, footprint computazionale ridotto e alta accuratezza di classificazione. 

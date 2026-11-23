@@ -11,6 +11,8 @@
 /Tesi/*.glsdefs
 /backend/.env
 /backend/datasets/id_cards/*
+/backend/datasets/videos/*
+/backend/datasets/photos/*
 
 /.vscode
 /.venv

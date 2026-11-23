@@ -4,8 +4,7 @@
 La progettazione del software end-to-end per l'autenticazione biometrica remota tramite documento d'identità, in oggetto di questa tesi, ha preso avvio da un'analisi approfondita di un \textbf{precedente prototipo} di verifica dell'identità, al fine di individuarne i limiti strutturali, le vulnerabilità e i colli di bottiglia prestazionali.
 Il primo elemento di criticità riscontrato riguardava la calibrazione della soglia decisionale di somiglianza coseno, originariamente fissata a un \textbf{valore estremamente permissivo} ($\tau = 0{,}15$). Come discusso nel Capitolo~\ref{cap:1-fondamenti}, una soglia così bassa nei modelli basati su margine angolare additivo come \gls{arcface}, azzera apparentemente il tasso di falsi rifiuti (\textit{False Reject Rate}) ma, al contempo, aumenta drasticamente il tasso di falsi accettati (\textit{False Accept Rate}), rendendo il sistema vulnerabile a tentativi di impersonificazione tramite \textit{spoofing}~\cite{azizFaceRecognitionBase2024}.
 Una seconda carenza strutturale risiedeva nella \textbf{totale assenza} di una pipeline di pre-elaborazione dedicata al documento d'identità. Tentare l'estrazione diretta del volto da una fotografia grezza della \gls{cie} senza prima correggere le distorsioni prospettiche d'inquadratura e migliorare il contrasto, espone il modello al degrado tipico del \textit{cross-domain matching}, causando frequenti fallimenti nello stadio di \textit{face detection} o la generazione di vettori di embedding fortemente rumorosi~\cite{fangIDCardIdentification2017,caldeiraImpactFaceSegmentationBased2026}.
-A ciò si aggiungeva \textbf{l'inaffidabilità del modulo \gls{pad}}: si faceva affidamento su componenti aggiuntivi instabili basati su versioni obsolete di \textit{PyTorch} operando, inoltre, in maniera \textit{stateless} su singoli fotogrammi isolati~\cite{liSilentFaceAntiSpoofing2024}.
-L'assenza di una validazione temporale su un buffer di frame, rendeva il sistema vulnerabile a semplici attacchi di presentazione \textit{print attacks} e \textit{replay attacks}, con conseguenti falsi rifiuti \textit{\gls{bpcer}} e accettazione di attacchi \textit{\gls{apcer}}, innescati da variazioni di illuminazione, posa o artefatti di \textit{motion blur}~\cite{azizFaceRecognitionBase2024}.
+Inoltre l'assenza di una validazione temporale su un buffer di frame, rendeva il sistema vulnerabile a semplici attacchi di presentazione \textit{print attacks} e \textit{replay attacks}, con conseguenti falsi rifiuti \textit{\gls{bpcer}} e accettazione di attacchi \textit{\gls{apcer}}, innescati da variazioni di illuminazione, posa o artefatti di \textit{motion blur}~\cite{azizFaceRecognitionBase2024}.
 
 Oltre alle vulnerabilità strettamente algoritmiche, l'architettura pregressa presentava severi limiti sotto il profilo dell'ingegneria del software, della scalabilità e della conformità normativa.
 In primo luogo, il prototipo analizzato era privo di uno strato di persistenza multi-utente strutturata. L'assenza di un database capace di indicizzare i vettori biometrici impediva la gestione concorrente di molteplici identità registrate e non consentiva di separare logicamente la fase di registrazione \textit{enrollment} da quella di autenticazione.
@@ -63,7 +62,7 @@ Nelle tabelle~\ref{tab:requisitiFunzionali} e~\ref{tab:requisitiNonFunzionali} s
         \hline
         RF1 & Acquisizione e Pre-processing \gls{cie} & Il sistema deve acquisire il lato anteriore di un documento ICAO TD1, applicando rettifica prospettica e miglioramento del contrasto locale (\gls{clahe}). & \textit{Must} \\
         \hline
-        RF2 & Estrazione Deep Face Embedding & Il sistema deve rilevare e allineare il volto sui 5 keypoint biometrici, estraendo un vettore normalizzato $e \in \mathbb{R}^{512}$ ($\lVert e \rVert_2 = 1$). & \textit{Must} \\
+        RF2 & Estrazione Deep Face Embedding & Il sistema deve rilevare e allineare il volto sui 5 keypoint biometrici, estraendo un vettore $e \in \mathbb{R}^{512}$. & \textit{Must} \\
         \hline
         RF3 & Liveness Detection Multi-Frame & Il sistema deve validare la presenza biologica reale su un buffer temporale di fotogrammi, combinando lo score passivo di \textit{MiniFASNet} e l'analisi di movimento dei keypoint. & \textit{Must} \\
         \hline
@@ -100,7 +99,7 @@ Nelle tabelle~\ref{tab:requisitiFunzionali} e~\ref{tab:requisitiNonFunzionali} s
         \hline
     %\end{tabular}
     \end{tabular*}
-    \caption{Specifica formale dei Requisiti Non Funzionali (RNF) del sistema progettato.}
+    \caption[Specifica formale dei Requisiti Non Funzionali (RNF) del sistema]{Specifica formale dei Requisiti Non Funzionali (RNF) del sistema progettato.}
     \label{tab:requisitiNonFunzionali}
 \end{table}
 
@@ -119,7 +118,7 @@ In letteratura, gli \gls{frs} remoti per la verifica dell'identità si dividono 
 \end{itemize}
 Nei moderni scenari di \textit{remote customer onboarding} basati sul confronto tra documento d'identità e acquisizione \textit{live}, l'adozione di un'architettura Client-Server disaccoppiata, di tipo \textbf{\textit{server-centric}}, risulta una scelta obbligata sotto il profilo sia della sicurezza, sia dell'accuratezza biometrica~\cite{sawetsutipunFacialImageVerification2020a}. 
 Infatti dal punto di vista della sicurezza, il dispositivo dell'utente rappresenta intrinsecamente un \textbf{ambiente non fidato} \textit{untrusted}, in quanto sotto il pieno controllo fisico e software di un potenziale attaccante. Delegare al browser o al client la logica decisionale di \gls{pad} o il calcolo della soglia di matching esporrebbe il sistema a \textbf{manomissioni del codice} e al bypass locale dei controlli~\cite{groupBiometricLivenessPresentation}. 
-Dal punto di vista algoritmico, inoltre, l'estrazione di un embedding affidabile da una fototessera stampata su \gls{cie} richiede reti profonde alta capacità discriminativa come \textit{ResNet-50} (\texttt{buffalo\_l}), dal peso di oltre $360\sim~\text{MB}$, che sono poco praticabili da scaricare ed eseguire con fluidità all'interno di un browser mobile. 
+Dal punto di vista algoritmico, inoltre, l'estrazione di un embedding affidabile da una fototessera stampata su \gls{cie} richiede reti profonde ad alta capacità discriminativa come \textit{ResNet-50} (\texttt{buffalo\_l}), dal peso di oltre $160\sim~\text{MB}$, che sono poco praticabili da scaricare ed eseguire con fluidità all'interno di un browser mobile. 
 Sui quei dispositivi sono più adatti modelli leggeri come \textit{MobileFaceNet} (\texttt{buffalo\_s}) di $\sim 4{,}5~\text{MB}$, nonostante il loro calo di accuratezza su immagini degradate, come già discusso nel Capitolo~\ref{cap:1.1-fondamenti} e nella Tabella~\ref{tab:confrontoBackboneFR}.
 % TODO Al contrario, le architetture di tipo \textit{centralized backend} presentano un carico computazionale e di \textbf{rete eccessivo} sul server centrale, che deve gestire l'intera pipeline per tutti gli utenti concorrenti, aumentando il rischio di colli di bottiglia e degrado delle prestazioni.
 
@@ -137,12 +136,12 @@ Inoltre, il software è stato progettato seguendo i principi di modularità e se
         \item \textbf{Modulo di BioHashing}: che applicherebbe la trasformazione di \textit{biohashing} all'embedding $e$ con un \textit{seed} specifico dell'utente per garantire la non invertibilità del vettore e la protezione della privacy. Non è attivo nella versione del software attuale, perchè incompatibile con l'identificazione $1:N$ su indice vettoriale, come discusso nel Capitolo~\ref{cap:2.4.2-modelloDati}.
     \end{itemize}Per abbattere i tempi di risposta e soddisfare il requisito $RNF1$, il livello applicativo mantiene le sessioni dei modelli neurali \textbf{pre-allocate} in memoria RAM (secondo il ciclo di vita approfondito nel Capitolo~\ref{cap:3-implementazione}), abbattendo i tempi di inferenza a $30{-}50~\text{ms}$ ed eliminando qualsiasi scrittura di file temporanei su disco ($RNF2$);
     
-    \item \textbf{Livello dei Dati} \textit{(Data Tier)}: consiste in un database vettoriale \textit{MongoDB Atlas Vector Search} che gestisce la persistenza multi-utente archiviando esclusivamente: l'embedding a 512 dimensioni (nella versione attuale non ancora protetto con \textit{biohashing}, si veda il Capitolo~\ref{cap:2.4.2-modelloDati}), il nominativo dell'utente e il \textit{timestamp} di creazione, in pieno rispetto dei principi \textit{Privacy by Design} descritti nel Capitolo~\ref{cap:1.4-normative}. Tale livello espone inoltre gli indici di ricerca vettoriali, necessari per le interrogazioni $1:N$ ad alta velocità~\cite{malkovEfficientRobustApproximate2018}.
+    \item \textbf{Livello dei Dati} \textit{(Data Tier)}: consiste in un database vettoriale \textit{MongoDB Atlas Vector Search} che gestisce la persistenza multi-utente archiviando esclusivamente: l'embedding a 512 dimensioni (nella versione attuale non ancora protetto con \textit{biohashing}, si veda il Capitolo~\ref{cap:2.4.2-modelloDati}), il nominativo dell'utente, il punteggio di rilevamento e il \textit{timestamp} di creazione, in pieno rispetto dei principi \textit{Privacy by Design} descritti nel Capitolo~\ref{cap:1.4-normative}. Tale livello espone inoltre gli indici di ricerca vettoriali, necessari per le interrogazioni $1:N$ ad alta velocità~\cite{malkovEfficientRobustApproximate2018}.
 \end{enumerate}
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{images/diagramma-componenti.png}
-    \caption{Architettura logica a tre livelli (\textit{Three-Tier Architecture}) del sistema progettato}
+    \caption[Architettura logica del sistema progettato]{Architettura logica a tre livelli (\textit{Three-Tier Architecture}) del sistema progettato}
     \label{fig:diagrammaComponenti}
 \end{figure}
 L'interazione tra il \textit{Presentation Tier} e l'\textit{Application Tier}, schematizzata nel diagramma dei componenti in Figura~\ref{fig:diagrammaComponenti}, adotta un'architettura protocollare ibrida interamente incapsulata su canali cifrati \textbf{TLS} (\textit{Transport Layer Security}), al fine di mitigare i rischi di intercettazione (\textit{Man-in-the-Middle}) e manipolazione del traffico al livello L6 della tassonomia di esposizione (requisito $RNF5$).
@@ -178,7 +177,7 @@ La Tabella~\ref{tab:confrontoFlussi} sintetizza il confronto architetturale e pr
         \hline
     %\end{tabular}
     \end{tabular*}
-    \caption{Confronto architetturale e protocollare tra il flusso di registrazione (\textit{enrollment}) tramite \gls{cie} e il flusso di verifica biometrica in tempo reale.}
+    \caption[Confronto tra i flussi di registrazione e verifica biometrica]{Confronto architetturale e protocollare tra il flusso di registrazione (\textit{enrollment}) tramite \gls{cie} e il flusso di verifica biometrica in tempo reale.}
     \label{tab:confrontoFlussi}
 \end{table}
 
@@ -186,7 +185,7 @@ La Tabella~\ref{tab:confrontoFlussi} sintetizza il confronto architetturale e pr
 %===============================================
 
 \section{Modellazione delle pipeline e Macchina a Stati Finiti (FSM)}\label{cap:2.3-pipeline}
-Definita l'infrastrutura Client-Server e i protocolli di trasporto, la progettazione si è concentrata sulla modellazione algoritmica dei due flussi opeativi principali del sistema: \textit{enrollment} e \textit{live verification}, governata da una \textbf{Macchina a Stati Finiti (\gls{fsm})}.
+Definita l'infrastrutura Client-Server e i protocolli di trasporto, la progettazione si è concentrata sulla modellazione algoritmica dei due flussi operativi principali del sistema: \textit{enrollment} e \textit{live verification}, governata da una \textbf{Macchina a Stati Finiti (\gls{fsm})}.
 Il flusso di \textit{enrollment}, innescato dalla chiamata sincrona \texttt{POST /register}, ha l'obiettivo di acquisire il lato anteriore di un documento conforme allo standard ICAO 9303 formato TD1 (come la \gls{cie} o la patente di guida italiana), normalizzarne le proprietà geometriche e prospettiche ed estrarre un template di riferimento univoco~\cite{icao9303,kelesRepublicTurkeyIdentity2020}. 
 Alla chiamata dell'\textit{endpoint}, nel rispetto del vincolo $RNF2$, lo stream binario ricevuto nel payload \texttt{multipart/form-data} viene decodificato direttamente in memoria volatile (RAM) come matrice numerica multibanda e attraversa i moduli descritti nel Capitolo~\ref{cap:2.2-architettura}. In particolare nel modulo di \textbf{rettifica documentale} l'immagine viene sottoposta a una serie di operazioni, per correggere le inevitabili rotazioni e distorsioni prospettiche, essendo acquisita a mano libera dall'utente in condizioni non vincolate:
 \begin{enumerate}
@@ -209,7 +208,7 @@ L'immagine rettificata e migliorata, viene quindi passata al modulo di \textbf{r
     \item \textbf{Allineamento geometrico} mediante trasformazione affine, normalizzando la dimensione a $112 \times 112$ pixel;
 \end{enumerate}
 Successivamente, il volto con i keypoint allineati viene passato al modulo di \textbf{estrazione e confronto}, che con la rete \textit{ResNet-50} (\texttt{buffalo\_l}) processa il tensore $112 \times 112 \times 3$ e genera un embedding $e \in \mathbb{R}^{512}$ normalizzato ($\lVert e \rVert_2 = 1$) come specificato nel Capitolo~\ref{cap:1-fondamenti}~\cite{dengArcFaceAdditiveAngular2022}.
-Prima di procedere alla registrazione, per soddisfare il requisito di unicità ($RF5$) conforme alle specifiche di \textit{identification} ICAO 9303~\cite{icao9303}, il backend esegue una query vettoriale $1:N$ sull'indice \textit{MongoDB Atlas Vector Search} confrontando $e_{\text{ID}}$ con tutti i template già registrati nel database attraverso la \textit{Cosine Similarity}.
+Prima di procedere alla registrazione, per soddisfare il requisito di unicità ($RF5$), il backend esegue una query vettoriale $1:N$ sull'indice \textit{MongoDB Atlas Vector Search} confrontando $e_{\text{ID}}$ con tutti i template già registrati nel database attraverso la \textit{Cosine Similarity}.
 Qualora il punteggio massimo di \textit{similarità coseno} superi la soglia decisionale, ovvero $\max_{j} S_c(e_{\text{ID}}, e_j) \ge \tau$, la transazione viene interrotta restituendo un errore semantico \texttt{HTTP 409 Conflict} al client, notificando che il soggetto biometrico è già registrato. 
 In caso contrario, il vettore $e_{\text{ID}}$ viene indicizzato nel database come template di riferimento, insieme al nominativo dell'utente e al \textit{timestamp} di creazione. 
 Nella versione attuale l'embedding è conservato in chiaro: la sua trasformazione tramite \textit{biohashing} descritta nel capitolo~\ref{cap:1.4-normative} non è stata adottata poichè richiederebbe il passaggio alla verifica $1:1$ discussa nel Capitolo~\ref{cap:2.4.2-modelloDati}.
@@ -302,11 +301,11 @@ La Tabella~\ref{tab:statiFSM} riassume formalmente gli stati della \gls{fsm} pro
         \hline
         $s_1$: \texttt{WAITING\_LIVENESS} & $t < N \land f_t \text{ valido}$ & $s_1$: \texttt{WAITING\_LIVENESS} \\
         \hline
-        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land (\bar{L} < \tau_{\text{liveness}} \lor \sigma_{\text{kps}} > \tau_{\text{static}})$ & $s_2$: \texttt{SPOOF\_ATTACK} \\
+        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land (\bar{L} < \tau_{\text{liveness}} \lor \sigma_{\text{kps}} \le \tau_{\text{static}})$ & $s_2$: \texttt{SPOOF\_ATTACK} \\
         \hline
         $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land \bar{L} \ge \tau_{\text{liveness}} \land \sigma_{\text{kps}} > \tau_{\text{static}} \land S_c(e_{\text{live}}, e_{\text{ID}}) \ge \tau$ & $s_3$: \texttt{MATCH} \\
         \hline
-        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land \bar{L} \ge \tau_{\text{liveness}} \land \sigma_{\text{kps}}^2 \in [\sigma_{\min}^2, \sigma_{\max}^2] \land S_c(e_{\text{live}}, e_{\text{ID}}) < \tau$ & $s_3$: \texttt{NO\_MATCH} \\
+        $s_1$: \texttt{WAITING\_LIVENESS} & $t = N \land \bar{L} \ge \tau_{\text{liveness}} \land \sigma_{\text{kps}} > \tau_{\text{static}} \land S_c(e_{\text{live}}, e_{\text{ID}}) < \tau$ & $s_3$: \texttt{NO\_MATCH} \\
         \hline
     %\end{tabular}
     \end{tabular*}
@@ -330,7 +329,7 @@ dove:
     \item $T_{\text{db}}$ la latenza di rete e ricerca su \textit{MongoDB Atlas};
     \item $\delta_{\text{cold}}, \delta_{\text{match}} \in \{0, 1\}$ sono coefficienti binari di attivazione. 
 \end{itemize}
-Grazie alla pre-allocazione dei modelli in RAM all'avvio del server (che impone $\delta_{\text{cold}} = 0$ per tutte le richieste utente) e al disaccoppiamento operato dalla \gls{fsm} tra lo stato iterativo $s_1$ ($\delta_{\text{match}} = 0$ per tutti gli $N$ frame del buffer) e lo stato finale $s_3$ ($\delta_{\text{match}} = 1$ una sola volta sul frame $f_{\text{best}}$), la latenza per singolo fotogramma durante lo streaming si riduce  si riduce all'Equazione~\eqref{eq:latenzaFrameOttimizzata}:
+Grazie alla pre-allocazione dei modelli in RAM all'avvio del server (che impone $\delta_{\text{cold}} = 0$ per tutte le richieste utente) e al disaccoppiamento operato dalla \gls{fsm} tra lo stato iterativo $s_1$ ($\delta_{\text{match}} = 0$ per tutti gli $N$ frame del buffer) e lo stato finale $s_3$ ($\delta_{\text{match}} = 1$ una sola volta sul frame $f_{\text{best}}$), la latenza per singolo fotogramma durante lo streaming si riduce all'Equazione~\eqref{eq:latenzaFrameOttimizzata}:
 \begin{equation}
     \label{eq:latenzaFrameOttimizzata}
     T_{\text{frame}} = T_{\text{det}} + T_{\text{pad}} \approx 30{-}50~\text{ms}
@@ -406,7 +405,7 @@ Allo stesso modo, in fase di interrogazione è possibile scegliere tra \gls{anns
 Le interrogazioni sono espresse come \textit{pipeline} di aggregazione il cui primo stadio è l'operatore \texttt{\$vectorSearch}: il sistema riceve il vettore di query, individua gli embedding più vicini e restituisce i documenti che li contengono, eventualmente elaborati da stadi successivi della \textit{pipeline}~\cite{MongoDBVectorSearch}. 
 Questo significa che l'intera identificazione $1:N$ si risolve in una singola interrogazione al Livello dei Dati, come previsto dallo stato $s_3$ della \gls{fsm} (Capitolo~\ref{cap:2.3-pipeline}).
 
-Infine si è scelto la funzione di similarità dell'indice. 
+Infine si è scelta la funzione di similarità dell'indice. 
 Su \textit{Atlas} ne sono disponibili tre, le cui formalizzazioni sono riportate nell'Equazione~\eqref{eq:metricheAtlas}: 
 \begin{itemize}
     \item \textbf{la distanza euclidea}, che misura la distanza tra le estremità dei vettori;
@@ -421,13 +420,12 @@ Su \textit{Atlas} ne sono disponibili tre, le cui formalizzazioni sono riportate
     \label{eq:metricheAtlas}
 \end{equation}
 
-Poiché gli embedding prodotti dal modulo di estrazione sono normalizzati sull'ipersfera unitaria ($\lVert e \rVert_2 = 1$), le tre funzioni producono lo stesso ordinamento dei candidati. 
-In questa condizione, infatti, il coseno coincide con il prodotto scalare, mentre il quadrato della distanza euclidea risulta una funzione monotona decrescente del coseno stesso, come mostrato nell'Equazione~\eqref{eq:equivalenzaMetriche}:
+Se gli embedding prodotti dal modulo di estrazione fossero normalizzati sull'ipersfera unitaria ($\lVert e \rVert_2 = 1$), le tre funzioni producono lo stesso ordinamento dei candidati: il coseno coinciderebbe con il prodotto scalare, mentre il quadrato della distanza euclidea sarebbe una funzione monotona decrescente del coseno stesso, come mostrato nell'Equazione~\eqref{eq:equivalenzaMetriche}:
 \begin{equation}
     \lVert a - b \rVert_2^2 = \lVert a \rVert_2^2 + \lVert b \rVert_2^2 - 2\, a \cdot b = 2\,\bigl(1 - S_c(a,b)\bigr)
     \label{eq:equivalenzaMetriche}
 \end{equation}
-Il sistema, quindi adotta la \textbf{similarità coseno}, che è la stessa funzione impiegata dalla regola decisionale definita nel Capitolo~\ref{cap:1-fondamenti} ed è robusta anche rispetto a eventuali vettori non perfettamente normalizzati. Tuttavia \textit{MongoDB Atlas} non restituisce il risultato grezzo del coseno, ma un punteggio riscalato nell'intervallo $[0,1]$ come mostrato nell'Equazione~\eqref{eq:scoreAtlas}~\cite{MongoDBVectorSearch}:
+Il sistema, quindi adotta la \textbf{similarità coseno}, che è la stessa funzione impiegata dalla regola decisionale definita nel Capitolo~\ref{cap:1-fondamenti}, robusta anche rispetto a eventuali vettori non perfettamente normalizzati. Tuttavia \textit{MongoDB Atlas} non restituisce il risultato grezzo del coseno, ma un punteggio riscalato nell'intervallo $[0,1]$ come mostrato nell'Equazione~\eqref{eq:scoreAtlas}~\cite{MongoDBVectorSearch}:
 \begin{equation}
     \text{score}_{\text{Atlas}}(a,b) = \frac{1 + S_c(a,b)}{2}
     \label{eq:scoreAtlas}
