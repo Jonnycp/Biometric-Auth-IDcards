@@ -1,5 +1,22 @@
-\chapter{\scshape Conclusioni}
+\chapter{\scshape Conclusioni}\label{cap:conclusioni}
 %\addcontentsline{toc}{chapter}{\scshape Conclusioni} %this line allows that the introduction could be in the table of contents
 
+Il lavoro si era proposto di realizzare un sistema \textit{end-to-end} in grado di riconoscere una persona confrontando il volto ripreso in diretta con la fototessera della \gls{cie}, verificandone al tempo stesso la presenza fisica.
+L'obiettivo \textbf{è stato raggiunto}: il prototipo registra un utente a partire da una semplice fotografia del documento, lo autentica con una sessione video di circa un secondo e mezzo e risolve l'identificazione $1{:}N$ con una sola interrogazione al database vettoriale, senza mai scrivere immagini su disco.
+Rispetto al prototipo precedente, il documento viene rettificato prima dell'estrazione, la vitalità è valutata su un buffer temporale e la soglia decisionale è stata tarata sui dati.
+Sul dispositivo di test, il server elabora un fotogramma in $13{,}6$~ms, il confronto tra volto e documento raggiunge un \gls{err} del $4{,}8\%$ e, con la soglia adottata $\tau = 0{,}33$, il sistema completo accetta 8 attacchi su 96.
+Il progetto ha mostrato tre aspetti:
+\begin{itemize}
+    \item la \textbf{composizione degli strati}: la sicurezza nasce dalla combinazione di più componenti, ciascuno con un ruolo specifico. \textit{MiniFASNet} ferma la maggior parte degli schermi, il controllo di staticità l'immagine iniettata e la soglia di similarità le foto stampate, mentre nessuno dei tre basterebbe da solo.
+    \item le \textbf{soglie non si fissano a priori}: i valori indicati in letteratura per la verifica tra immagini dello stesso dominio avrebbero respinto quasi tutti gli utenti legittimi nel confronto con il documento.
+    \item la \textbf{qualità dei dati} è fondamentale: correggere la geometria della foto del documento conta molto più che migliorarne il contrasto.
+\end{itemize}
+L'architettura modulare permette di avvicinare il prototipo a un servizio reale per passi successivi:
+\begin{itemize}
+    \item \textbf{Riconoscimento tra domini}: affinare la rete di embedding su coppie documento-selfie~\cite{albieroIdentityDocumentSelfie2019a} sostituendo ove possibile la foto della tessera con l'immagine del volto memorizzata nel chip~\cite{icao9303};
+    \item \textbf{Vitalità e canale}: integrare la fusione multi-scala prevista da \textit{Silent-Face-Anti-Spoofing}~\cite{MinivisionaiSilentFaceAntiSpoofing} e affiancare alla verifica passiva l'attestazione del client e brevi \textit{challenge} generate dal server~\cite{groupBiometricLivenessPresentation};
+    \item \textbf{Gestione dei dati}: un controllo più rigoroso in fase di registrazione, la cancellazione del profilo richiesta dal \gls{gdpr}~\cite{REGOLAMENTOUE2016} e la protezione dei template tramite \textit{BioHashing} con verifica $1{:}1$
+    \item \textbf{Valutazione}: più soggetti e dispositivi, un insieme di taratura separato da quello di prova, misure comprensive di rete e database e dati sintetici per studiare il confronto su larga scala~\cite{ismayilovFLUXSynIDFrameworkIdentityControlled2025}.
+\end{itemize}
 
-Inserire qui il testo delle conclusioni.
+\noindent In conclusione, un prototipo costruito con modelli \textit{open source} ed eseguito su un comune portatile raggiunge \textbf{tempi interattivi e una difesa credibile} contro gli attacchi più semplici, rispettando anche la minimizzazione dei dati.
