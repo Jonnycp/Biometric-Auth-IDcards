@@ -5,6 +5,7 @@ Un'architettura modulare produce i suoi benefici solo se la stessa separazione d
 Per questo motivo l'implementazione è partita dalla definizione di una struttura di cartelle coerente con i moduli logici del sistema introdotti nel Capitolo~\ref{cap:2.2-architettura}, permettendo anche di facilitare la manutenzione e l'estendibilità futura del progetto.
 Il progetto è organizzato come un \textbf{unico repository (\textit{monorepo})} che contiene, in tre cartelle di primo livello, il servizio di backend, l'applicazione web di frontend e i sorgenti \LaTeX{} del presente elaborato.
 Questa scelta consente di \textbf{versionare} attraverso l'uso di strumenti di controllo della versione come \textit{Git} in modo coordinato le modifiche che attraversano più livelli, come l'aggiunta di un campo a un \textit{contratto di risposta} che deve essere recepito contemporaneamente dal server e dal client.
+Il prototipo è scaricabile da Github all'indirizzo \url{https://github.com/Jonnycp/Biometric-Auth-IDcards}~\cite{JonnycpBiometricAuthIDcardsTesi}
 La struttura dei due componenti software è riportata in Figura~\ref{fig:strutturaRepository}.
 
 \begin{figure}[htbp]
