@@ -25,5 +25,6 @@ __pycache__/
 /frontend/.env
 
 /documents
+/tests
 /backend/.insightface
 /Tesi/template
