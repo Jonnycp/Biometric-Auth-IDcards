@@ -1,11 +1,23 @@
 from insightface.app import FaceAnalysis
 from insightface.app.common import Face
 import numpy as np
+import onnxruntime as ort
 
 # Inizializza FaceRecognition (ctx_id = -1 -> CPU)
 def initFaceRecognition(model: str = "buffalo_l", det_size: tuple[int, int] = (320, 320)) -> FaceAnalysis:
-    app = FaceAnalysis(name=model, root="backend/.insightface", allowed_modules=['detection', 'recognition'], providers = ['CoreMLExecutionProvider', 'CPUExecutionProvider'])
-    app.prepare(ctx_id=0, det_size=det_size)
+    available = ort.get_available_providers()
+    preferred = ["CoreMLExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider"]
+    providers = [p for p in preferred if p in available] or ["CPUExecutionProvider"]
+
+    ctx_id = -1 if providers == ["CPUExecutionProvider"] else 0
+
+    app = FaceAnalysis(
+        name=model,
+        root="backend/.insightface",
+        allowed_modules=["detection", "recognition"],
+        providers=providers,
+    )
+    app.prepare(ctx_id=ctx_id, det_size=det_size)
     return app
 
 # Estrae facce immagine
