@@ -1,0 +1,14 @@
+/Giuliana-Terlizzo
+/Tesi
+/backend/datasets
+/backend/.insightface
+
+/.vscode
+/.venv
+**/__pycache__/
+
+/frontend
+**/.DS_Store
+
+/documents
+/tests

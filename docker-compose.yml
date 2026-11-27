@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: backend/.env
+    environment:
+      LIVENESS_MODEL_PATH: backend/.insightface/minifasnet_v2.onnx
+      BACKEND_URL: http://0.0.0.0:3000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    volumes:
+      - ./backend/.insightface:/app/backend/.insightface
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+        required: false
+    restart: unless-stopped
+ 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+ 
+  mongo:
+    image: mongodb/mongodb-atlas-local:8.0
+    profiles: ["localdb"]
+    hostname: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+      - ./docker/mongo-init:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+ 
+volumes:
+  mongo-data:
+  mongo-config:
+ 
